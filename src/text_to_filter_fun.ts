@@ -46,7 +46,9 @@ enum Cond {
 
     ComposeOR,          // Composeable OR
     ComposeAND,         // Composeable AND
-    ComposeNOT          // Composeable NOT (not yet implemented)
+    ComposeNOT,         // Composeable NOT (not yet implemented)
+
+    // EvalLambda          // Risky.
 };
 
 
@@ -59,7 +61,8 @@ let cond_lookup = {
     '<': Cond.LessThan,
     '~': Cond.Fuzzy,
     '?': Cond.Exists,
-    '$': Cond.ArgValueInItemSeq,
+    '^': Cond.ArgValueInItemSeq,
+    //'$': Cond.EvalLambda,
 };
 
 
@@ -67,6 +70,9 @@ let cond_lookup = {
 let fn_lookup = {};
 
 fn_lookup[Cond.Equal] = function (value, arg) {
+    if (value.__proto__.constructor.name == "Array") {
+        return value.indexOf(arg);
+    }
     return value == arg;
 };
 
@@ -131,6 +137,12 @@ fn_lookup[Cond.ComposeAND] = function (value, arg) {
     return true;
 };
 
+/*
+fn_lookup[Cond.EvalLambda] = function(value, fn) {
+    console.log('function(i) { ' + fn + ' }');
+    return true;
+};
+*/
 
 // Tokenize a search in a way that we feel good about.
 let safe_split = function safe_split(s): Array<any> {
@@ -185,7 +197,9 @@ let safe_split = function safe_split(s): Array<any> {
 // Test to see if our token is a condition or just
 // normal text input. `` grave to escape.
 let is_cond = function (token: string): boolean {
-    if (token.search(':') != -1 && token[0] != '\`') {
+    if (token[0] == '&') {
+        return true;
+    } else if (token.search(':') != -1 && token[0] != '\`') {
         return true;
     }
     return false;
@@ -212,9 +226,9 @@ let cond_parse = function (arg): Array<any> {
     if (!isNaN(+arg)) {
         arg = +arg;
     }
-    if (arg == 't' || arg == 'true') {
+    if (arg == 'true') {
         arg = true;
-    } else if (arg == 'f' || arg == 'false') {
+    } else if (arg == 'false') {
         arg = false;
     }
     return [cond, arg];
@@ -283,6 +297,26 @@ let build_filter_fn_from_tokens = function (s: any): any {
     };
 };
 
+let default_macros = {
+    'is': function (key, arg) {
+        return [`${arg}`, 'true'];
+    },
+    'has': function (key, arg) {
+        return [`${arg}`, '?'];
+    }
+};
+
+let merge_maps = function(...args:any[]):{} {
+    let d = {};
+    for (let source of args) {
+        for (let property in source) {
+            if (source.hasOwnProperty(property)) {
+                d[property] = source[property];
+            }
+        }
+    }
+    return d;
+}
 
 // Compose a list of tokens and then use the build_filter_fn_from_tokens
 // to create a function for the user to filter with.
@@ -291,7 +325,10 @@ let build_fn = function (q: string, options?: {}): any {
         options = {};
     }
     let fuzzy_key = options['fuzzy_key'] || 'fuzzy';
-    let macro_map = options['macros'] || {};
+    let macro_map = merge_maps(
+        default_macros,
+        options['macros'] || {},
+    );
     let final_tokens = [];
     let basic_tokens = safe_split(q);
     for (let str_token of basic_tokens) {
@@ -339,6 +376,7 @@ let build_fn = function (q: string, options?: {}): any {
             );
         }
     }
+
     //console.log(JSON.stringify(final_tokens));
     return build_filter_fn_from_tokens(final_tokens);
 };
