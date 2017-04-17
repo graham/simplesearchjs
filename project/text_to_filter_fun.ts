@@ -43,8 +43,8 @@ enum Cond {
     GreaterThan,        // item[key] > value OR item[key](value)
     ArgValueInItemSeq,  // value in item[key]
     ItemValueInArgSeq,  // item[key] in value
-    Haystack,              // See implementation, allows RegEx
-    FastHaystack           // See implementation, uses indexOf
+    Haystack,           // See implementation, allows RegEx
+    FastHaystack        // See implementation, uses indexOf
 };
 
 /* 
@@ -200,26 +200,69 @@ let safe_split = function safe_split(s: string, split_char: string, strip_block_
 };
 
 // Create a set of search tokens given a search query.
-let string_to_search_tokens = function (s: string): Array<any> {
-    let haystack_token = [];
-    let final_tokens = [];
-    let init_tokens = safe_split(s, ' ');
+let string_to_search_tokens = function (s: string, macro_map: { [id:string]: Function }, haystack_macro_map: { [id:string]: Function }): Array<any> {
+    let haystack_tokens:Array<any> = [];
+    let final_tokens:Array<any> = [];
+    let init_tokens:Array<string> = safe_split(s, ' ');
+    let condition_tokens:Array<any> = [];
 
+    // first we split up the haystack from the pure conditions.
     for (let tok of init_tokens) {
-        let index = tok.search(':')
+        let index = tok.search(':');
         if (index == -1) {
-            haystack_token.push([Cond.FastHaystack, tok]);
+            haystack_tokens.push(tok);
         } else {
-            let key = tok.slice(0, index);
-            let arg_list = safe_split(tok.slice(index + 1), ',', true);
-            let new_token = gen_token_from_key_args(key, arg_list);
-            if (new_token) {
-                final_tokens.push(new_token);
+            condition_tokens.push(tok);
+        }
+    }
+
+    // Next we macro expand haystack conditions, which are regexes, and can only
+    // be one level deep. (need docs)
+    // See the haystack macro to normal macro test for an example.
+    let final_haystack:Array<any> = [];
+    for (let macro_match of Object.keys(haystack_macro_map)) {
+        for (let tok of haystack_tokens) {
+            let extra_conditions:Array<any> = [];
+            let more_haystack:Array<string> = [];
+            if (tok.search(macro_match) != -1) {
+                [extra_conditions, more_haystack] = haystack_macro_map[macro_match](tok);
+                extra_conditions.forEach((item) => {
+                    condition_tokens.push(item);
+                });
+                more_haystack.forEach((item) => {
+                    final_haystack.push([Cond.FastHaystack, item]);
+                });
+            } else {
+                final_haystack.push([Cond.FastHaystack, tok]);
             }
         }
     }
 
-    final_tokens.push([SearchType.Include, 'haystack', ComposeType.OR, haystack_token]);
+    // We now have a final haystack and only conditions.
+    // Here, there are still condition level macros, but macros can only
+    // modify the item, not create more conditions.
+    for (let tok of condition_tokens) {
+        let index = tok.search(':');
+        let key:string = tok.slice(0, index);
+        let arg_list = safe_split(tok.slice(index + 1), ',', true);
+
+        let macro:Function = macro_map[key];
+        let more_haystack:Array<string> = [];
+
+        if (macro != undefined) {
+            [key, arg_list, more_haystack] = macro(key, arg_list);
+            if (more_haystack) {
+                haystack_tokens = haystack_tokens.concat(more_haystack);
+            }
+        }
+
+        let new_token = gen_token_from_key_args(key, arg_list);
+        if (new_token) {
+            final_tokens.push(new_token);
+        }
+    }
+
+    final_tokens.push([SearchType.Include, 'haystack', ComposeType.OR, final_haystack]);
 
     return final_tokens;
 };
@@ -348,8 +391,9 @@ let build_fn = function (q: string, options?: {}): any {
 
     let haystack_key = options['haystack_key'] || 'haystack';
     let macro_map = options['macros'] || {};
+    let haystack_macro_map = options['haystack_macros'] || {};
 
-    let final_tokens = string_to_search_tokens(q);
+    let final_tokens = string_to_search_tokens(q, macro_map, haystack_macro_map);
     let condition_fns:Array<any> = [];
 
     for (let outer_token of final_tokens) {
