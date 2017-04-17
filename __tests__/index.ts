@@ -170,3 +170,165 @@ describe('feature dig_into_object', () => {
         expect(result[0].host_id).toBe(54321);
     });
 });
+
+describe('compose types and conditions', () => {
+    it('allow and conditions', () => {
+        var data = [
+            {
+                name: "Han Solo",
+                points: 200
+            },
+            {
+                name: "Leia Organa",
+                points: 500
+            }
+        ];
+
+        var search_string:string = "points:&,<400,>100";
+        var filter:Function = build_fn(search_string);
+
+        var result:any = [];
+
+        data.forEach((item) => {
+            if (filter(item)) {
+                result.push(item);
+            }
+        });
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe("Han Solo");
+    });
+
+    it('allow or conditions', () => {
+        var data = [
+            {
+                name: "Han Solo",
+                points: 200
+            },
+            {
+                name: "Leia Organa",
+                points: 500
+            }
+        ];
+
+        var search_string:string = "points:|,>400,<100";
+        var filter:Function = build_fn(search_string);
+
+        var result:any = [];
+
+        data.forEach((item) => {
+            if (filter(item)) {
+                result.push(item);
+            }
+        });
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe("Leia Organa");
+    });
+
+    it('allow item in list conditions', () => {
+        var data = [
+            { 'name': 'even',
+              'numbers': [2,4,6,8,10]
+            },
+            { 'name': 'odd',
+              'numbers': [1,3,5,7,9]
+            }
+        ];
+
+        var search_string:string = "numbers:$2";
+        var filter:Function = build_fn(search_string);
+
+        var result:any = [];
+
+        data.forEach((item) => {
+            if (filter(item)) {
+                result.push(item);
+            }
+        });
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('even');
+    });
+
+    it('allow not conditions', () => {
+        var test_data = [
+            {'name': 'han'},
+            {'name': 'luke'}
+        ];
+        
+        var search_string:string = 'name:!luke';
+        var filter:Function = build_fn(search_string);
+        var result:any = [];
+
+        test_data.forEach((item) => {
+            if (filter(item)) {
+                result.push(item);
+            }
+        });
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('han');
+    });
+
+    it('allow equal conditions', () => {
+        var test_data = [
+            {'name': 'han'},
+            {'name': 'luke'}
+        ];
+        
+        var search_string:string = 'name:=luke';
+        var filter:Function = build_fn(search_string);
+        var result:any = [];
+
+        test_data.forEach((item) => {
+            if (filter(item)) {
+                result.push(item);
+            }
+        });
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('luke');
+    });
+
+    it('allow regex conditions', () => {
+        var test_data = [
+            {'name': 'han'},
+            {'name': 'luke'}
+        ];
+        
+        var search_string:string = 'name:~^..ke$';
+        var filter:Function = build_fn(search_string);
+        var result:any = [];
+
+        test_data.forEach((item) => {
+            if (filter(item)) {
+                result.push(item);
+            }
+        });
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('luke');
+    });
+
+    it('allow indexOf conditions', () => {
+        var test_data = [
+            {'name': 'han'},
+            {'name': 'luke'}
+        ];
+        
+        var search_string:string = 'name:%lu';
+        var filter:Function = build_fn(search_string);
+        var result:any = [];
+
+        test_data.forEach((item) => {
+            if (filter(item)) {
+                result.push(item);
+            }
+        });
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('luke');
+    });
+
+});

@@ -333,8 +333,11 @@ let gen_token_from_key_args = function (key: string, arg_list: Array<string>): A
         return null;
     }
 
-    if (arg_list[0] == '&') {
+    if (arg_list[0] == '&' || arg_list[0] == 'and') {
         compose_type = ComposeType.AND;
+        arg_list = arg_list.slice(1);
+    } else if (arg_list[0] == '|' || arg_list[0] == 'or') {
+        compose_type = ComposeType.OR;
         arg_list = arg_list.slice(1);
     }
 
