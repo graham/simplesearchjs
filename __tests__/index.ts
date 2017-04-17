@@ -135,3 +135,38 @@ describe('feature_macros', () => {
         expect(result[0].path.indexOf('my')).toBe('myfolder/'.indexOf('my'));
     });
 });
+
+describe('feature dig_into_object', () => {
+    it('match on child key', () => {
+        var data = [
+            {
+                "host_id": 54321,
+                "build_history": {
+                    "timestamp": 1411075727,
+                    "version": "Dropbox-mac-3.1.213"
+                }
+            },
+            {
+                "host_id": 12345,
+                "build_history": {
+                    "timestamp": 1411075729,
+                    "version": "Dropbox-linux-3.1.213"
+                }
+            }
+        ];
+
+        var search_string:string = "build_history.version:%mac";
+        var filter:Function = build_fn(search_string);
+
+        var result:any = [];
+
+        data.forEach((item) => {
+            if (filter(item)) {
+                result.push(item);
+            }
+        });
+
+        expect(result.length).toBe(1);
+        expect(result[0].host_id).toBe(54321);
+    });
+});

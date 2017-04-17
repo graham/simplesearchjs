@@ -67,6 +67,7 @@ let cond_lookup = {
     '>': Cond.GreaterThan,
     '<': Cond.LessThan,
     '~': Cond.Haystack,
+    '%': Cond.FastHaystack,
     '?': Cond.Exists,
     '$': Cond.ArgValueInItemSeq
 };
@@ -137,8 +138,8 @@ fn_lookup[Cond.Haystack] = function (value, arg) {
     // Coerce the type if both sides don't match.
     if (target_type == undefined) {
         return false;
-    } else if (target_type == "string" || target_typ == 'number') {
-        return regex_test.test(arg);
+    } else if (target_type == "string") {
+        return regex_test.test(value);
     }
     return false;
 };
@@ -220,8 +221,9 @@ let string_to_search_tokens = function (s: string, macro_map: { [id:string]: Fun
     // be one level deep. (need docs)
     // See the haystack macro to normal macro test for an example.
     let final_haystack:Array<any> = [];
-    for (let macro_match of Object.keys(haystack_macro_map)) {
-        for (let tok of haystack_tokens) {
+    for (let tok of haystack_tokens) {
+        let found: boolean = false;
+        for (let macro_match of Object.keys(haystack_macro_map)) {
             let extra_conditions:Array<any> = [];
             let more_haystack:Array<string> = [];
             if (tok.search(macro_match) != -1) {
@@ -232,9 +234,12 @@ let string_to_search_tokens = function (s: string, macro_map: { [id:string]: Fun
                 more_haystack.forEach((item) => {
                     final_haystack.push([Cond.FastHaystack, item]);
                 });
-            } else {
-                final_haystack.push([Cond.FastHaystack, tok]);
+                found = true;
             }
+        }
+
+        if (!found) {
+            final_haystack.push([Cond.FastHaystack, tok]);
         }
     }
 
@@ -252,11 +257,12 @@ let string_to_search_tokens = function (s: string, macro_map: { [id:string]: Fun
         if (macro != undefined) {
             [key, arg_list, more_haystack] = macro(key, arg_list);
             if (more_haystack) {
-                haystack_tokens = haystack_tokens.concat(more_haystack);
+                final_haystack = final_haystack.concat(more_haystack);
             }
         }
 
         let new_token = gen_token_from_key_args(key, arg_list);
+
         if (new_token) {
             final_tokens.push(new_token);
         }
@@ -379,6 +385,7 @@ let dig_key_value = function (key, value): any {
             value = value[part];
         }
     }
+
     return value;
 }
 
@@ -401,6 +408,10 @@ let build_fn = function (q: string, options?: {}): any {
             let ret = true;
             let [addrem, key, compose_type, args] = outer_token;
             let value = dig_key_value(key, item);
+
+            if (key == haystack_key && value == undefined) {
+                return true;
+            }
 
             for (let arg of args) {
                 let fn_cond_enum = arg[0];
