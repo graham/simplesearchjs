@@ -43,7 +43,8 @@ enum Cond {
     GreaterThan,        // item[key] > value OR item[key](value)
     ArgValueInItemSeq,  // value in item[key]
     ItemValueInArgSeq,  // item[key] in value
-    Fuzzy               // See implementation.
+    Haystack,              // See implementation, allows RegEx
+    FastHaystack           // See implementation, uses indexOf
 };
 
 /* 
@@ -65,7 +66,7 @@ let cond_lookup = {
     '!': Cond.NotEqual,
     '>': Cond.GreaterThan,
     '<': Cond.LessThan,
-    '~': Cond.Fuzzy,
+    '~': Cond.Haystack,
     '?': Cond.Exists,
     '$': Cond.ArgValueInItemSeq
 };
@@ -74,6 +75,8 @@ let cond_english_lookup = {};
 for (let key in cond_lookup) {
     cond_english_lookup[cond_lookup[key]] = key;
 }
+
+let regex_condition_cache: { [id: string]: any } = {};
 
 // Our cond function lookup.
 let fn_lookup: any = {};
@@ -106,7 +109,7 @@ fn_lookup[Cond.ItemValueInArgSeq] = function (value, arg) {
     return arg.indexOf(value) == -1;
 };
 
-fn_lookup[Cond.Fuzzy] = function (value, arg) {
+fn_lookup[Cond.FastHaystack] = function (value, arg) {
     let target_type = typeof (value);
     if (arg.length == 0) { return false; }
 
@@ -114,9 +117,28 @@ fn_lookup[Cond.Fuzzy] = function (value, arg) {
     if (target_type == undefined) {
         return false;
     } else if (target_type == "string") {
-        return value.search(arg) != -1;
+        return value.indexOf(arg) != -1;
     } else if (target_type == "number") {
-        return ("" + value).search(arg) != -1;
+        return ("" + value).indexOf(arg) != -1;
+    }
+    return false;
+};
+
+fn_lookup[Cond.Haystack] = function (value, arg) {
+    let target_type = typeof (value);
+    if (arg.length == 0) { return false; }
+
+    let regex_test:RegExp = regex_condition_cache[arg];
+    if (regex_test == undefined) {
+        regex_test = new RegExp(arg);
+        regex_condition_cache[arg] = regex_test;
+    }
+
+    // Coerce the type if both sides don't match.
+    if (target_type == undefined) {
+        return false;
+    } else if (target_type == "string" || target_typ == 'number') {
+        return regex_test.test(arg);
     }
     return false;
 };
@@ -135,13 +157,13 @@ let safe_split = function safe_split(s: string, split_char: string, strip_block_
         '`': '`'
     };
 
-    var partitions = [];
-    var current_word = [];
-    var in_block = false;
-    var block_start_char = null;
+    let partitions = [];
+    let current_word = [];
+    let in_block = false;
+    let block_start_char = null;
 
-    for (var i = 0; i < s.length; i++) {
-        var chr = s[i];
+    for (let i = 0; i < s.length; i++) {
+        let chr = s[i];
         if (in_block) {
             if (chr == block_chars[block_start_char]) {
                 if (!strip_block_chars) {
@@ -179,14 +201,14 @@ let safe_split = function safe_split(s: string, split_char: string, strip_block_
 
 // Create a set of search tokens given a search query.
 let string_to_search_tokens = function (s: string): Array<any> {
-    let fuzzy_token = [];
+    let haystack_token = [];
     let final_tokens = [];
     let init_tokens = safe_split(s, ' ');
 
     for (let tok of init_tokens) {
         let index = tok.search(':')
         if (index == -1) {
-            fuzzy_token.push([Cond.Fuzzy, tok]);
+            haystack_token.push([Cond.FastHaystack, tok]);
         } else {
             let key = tok.slice(0, index);
             let arg_list = safe_split(tok.slice(index + 1), ',', true);
@@ -197,7 +219,7 @@ let string_to_search_tokens = function (s: string): Array<any> {
         }
     }
 
-    final_tokens.push([SearchType.Include, 'fuzzy', ComposeType.OR, fuzzy_token]);
+    final_tokens.push([SearchType.Include, 'haystack', ComposeType.OR, haystack_token]);
 
     return final_tokens;
 };
@@ -324,14 +346,14 @@ let build_fn = function (q: string, options?: {}): any {
         options = {};
     }
 
-    let fuzzy_key = options['fuzzy_key'] || 'fuzzy';
+    let haystack_key = options['haystack_key'] || 'haystack';
     let macro_map = options['macros'] || {};
 
     let final_tokens = string_to_search_tokens(q);
-    let condition_fns = [];
+    let condition_fns:Array<any> = [];
 
     for (let outer_token of final_tokens) {
-        var lambda = function (item: any): boolean {
+        let lambda = function (item: any): boolean {
             let ret = true;
             let [addrem, key, compose_type, args] = outer_token;
             let value = dig_key_value(key, item);
