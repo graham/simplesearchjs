@@ -255,9 +255,12 @@ let string_to_search_tokens = function(s: string, macro_map: { [id: string]: Fun
         let more_haystack: Array<string> = [];
 
         if (macro != undefined) {
-            [key, arg_list, more_haystack] = macro(key, arg_list);
-            if (more_haystack) {
-                final_haystack = final_haystack.concat(more_haystack);
+            let result = macro(key, arg_list);
+            if (result != undefined) {
+                [key, arg_list, more_haystack] = result;
+                if (more_haystack) {
+                    final_haystack = final_haystack.concat(more_haystack);
+                }
             }
         }
 
@@ -416,13 +419,7 @@ let build_fn = function(q: string, options?: {}): any {
                 let fn_cond_enum = arg[0];
 
                 try {
-                    if (typeof value == "function") {
-                        if (fn_cond_enum == Cond.Exists) {
-                            ret = true;
-                        } else {
-                            ret = value.apply(item, [arg[1]]);
-                        }
-                    } else if (typeof value == "undefined") {
+                    if (typeof value == "undefined") {
                         ret = false;
                     } else {
                         ret = fn_lookup[fn_cond_enum](value, arg[1]);
