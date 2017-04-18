@@ -72,7 +72,7 @@ let cond_lookup = {
     '$': Cond.ArgValueInItemSeq
 };
 
-let cond_english_lookup = {};
+let cond_english_lookup: { [id: number]: string } = {};
 for (let key in cond_lookup) {
     cond_english_lookup[cond_lookup[key]] = key;
 }
@@ -82,35 +82,35 @@ let regex_condition_cache: { [id: string]: any } = {};
 // Our cond function lookup.
 let fn_lookup: any = {};
 
-fn_lookup[Cond.Equal] = function (value, arg) {
+fn_lookup[Cond.Equal] = function(value: any, arg: any) {
     return value == arg;
 };
 
-fn_lookup[Cond.NotEqual] = function (value, arg) {
+fn_lookup[Cond.NotEqual] = function(value: any, arg: any) {
     return value != arg;
 };
 
-fn_lookup[Cond.LessThan] = function (value, arg) {
+fn_lookup[Cond.LessThan] = function(value: any, arg: any) {
     return value < arg;
 };
 
-fn_lookup[Cond.GreaterThan] = function (value, arg) {
+fn_lookup[Cond.GreaterThan] = function(value: any, arg: any) {
     return value > arg;
 };
 
-fn_lookup[Cond.Exists] = function (value, arg) {
+fn_lookup[Cond.Exists] = function(value: any, arg: any) {
     return value !== undefined;
 };
 
-fn_lookup[Cond.ArgValueInItemSeq] = function (value, arg) {
+fn_lookup[Cond.ArgValueInItemSeq] = function(value: any, arg: any) {
     return value.indexOf(arg) != -1;
 };
 
-fn_lookup[Cond.ItemValueInArgSeq] = function (value, arg) {
+fn_lookup[Cond.ItemValueInArgSeq] = function(value: any, arg: any) {
     return arg.indexOf(value) == -1;
 };
 
-fn_lookup[Cond.FastHaystack] = function (value, arg) {
+fn_lookup[Cond.FastHaystack] = function(value: any, arg: any) {
     let target_type = typeof (value);
     if (arg.length == 0) { return false; }
 
@@ -125,11 +125,11 @@ fn_lookup[Cond.FastHaystack] = function (value, arg) {
     return false;
 };
 
-fn_lookup[Cond.Haystack] = function (value, arg) {
+fn_lookup[Cond.Haystack] = function(value: any, arg: any) {
     let target_type = typeof (value);
     if (arg.length == 0) { return false; }
 
-    let regex_test:RegExp = regex_condition_cache[arg];
+    let regex_test: RegExp = regex_condition_cache[arg];
     if (regex_test == undefined) {
         regex_test = new RegExp(arg);
         regex_condition_cache[arg] = regex_test;
@@ -150,7 +150,7 @@ let safe_split = function safe_split(s: string, split_char: string, strip_block_
         strip_block_chars = false;
     }
 
-    let block_chars = {
+    let block_chars: { [id: string]: string } = {
         '"': '"',
         "'": "'",
         '(': ')',
@@ -201,11 +201,11 @@ let safe_split = function safe_split(s: string, split_char: string, strip_block_
 };
 
 // Create a set of search tokens given a search query.
-let string_to_search_tokens = function (s: string, macro_map: { [id:string]: Function }, haystack_macro_map: { [id:string]: Function }): Array<any> {
-    let haystack_tokens:Array<any> = [];
-    let final_tokens:Array<any> = [];
-    let init_tokens:Array<string> = safe_split(s, ' ');
-    let condition_tokens:Array<any> = [];
+let string_to_search_tokens = function(s: string, macro_map: { [id: string]: Function }, haystack_macro_map: { [id: string]: Function }): Array<any> {
+    let haystack_tokens: Array<any> = [];
+    let final_tokens: Array<any> = [];
+    let init_tokens: Array<string> = safe_split(s, ' ');
+    let condition_tokens: Array<any> = [];
 
     // first we split up the haystack from the pure conditions.
     for (let tok of init_tokens) {
@@ -220,12 +220,12 @@ let string_to_search_tokens = function (s: string, macro_map: { [id:string]: Fun
     // Next we macro expand haystack conditions, which are regexes, and can only
     // be one level deep. (need docs)
     // See the haystack macro to normal macro test for an example.
-    let final_haystack:Array<any> = [];
+    let final_haystack: Array<any> = [];
     for (let tok of haystack_tokens) {
         let found: boolean = false;
         for (let macro_match of Object.keys(haystack_macro_map)) {
-            let extra_conditions:Array<any> = [];
-            let more_haystack:Array<string> = [];
+            let extra_conditions: Array<any> = [];
+            let more_haystack: Array<string> = [];
             if (tok.search(macro_match) != -1) {
                 [extra_conditions, more_haystack] = haystack_macro_map[macro_match](tok);
                 extra_conditions.forEach((item) => {
@@ -248,11 +248,11 @@ let string_to_search_tokens = function (s: string, macro_map: { [id:string]: Fun
     // modify the item, not create more conditions.
     for (let tok of condition_tokens) {
         let index = tok.search(':');
-        let key:string = tok.slice(0, index);
+        let key: string = tok.slice(0, index);
         let arg_list = safe_split(tok.slice(index + 1), ',', true);
 
-        let macro:Function = macro_map[key];
-        let more_haystack:Array<string> = [];
+        let macro: Function = macro_map[key];
+        let more_haystack: Array<string> = [];
 
         if (macro != undefined) {
             [key, arg_list, more_haystack] = macro(key, arg_list);
@@ -274,7 +274,7 @@ let string_to_search_tokens = function (s: string, macro_map: { [id:string]: Fun
 };
 
 // Convert a token to something readable by a human.
-let token_to_english = function (token: Array<any>): string {
+let token_to_english = function(token: Array<any>): string {
     let [addrem, key, compose_type, args] = token;
     let s = [];
 
@@ -282,7 +282,7 @@ let token_to_english = function (token: Array<any>): string {
     s.push(SearchType[addrem]);
     s.push(`results where ${key} matches`);
 
-    s.push(args.map(function (arg) {
+    s.push(args.map(function(arg: any) {
         return ' ' + Cond[arg[0]] + ' |' + arg[1] + '| ';
     }).join(ComposeType[compose_type]));
 
@@ -290,7 +290,7 @@ let token_to_english = function (token: Array<any>): string {
 };
 
 // Convert a token back to a safe query value.
-let token_to_query = function (token: Array<any>): string {
+let token_to_query = function(token: Array<any>): string {
     let [addrem, key, compose_type, args] = token;
     let s = [];
 
@@ -307,7 +307,7 @@ let token_to_query = function (token: Array<any>): string {
         s.push('&,');
     }
 
-    s.push(args.map(function (arg) {
+    s.push(args.map(function(arg: any) {
         return "`" + cond_english_lookup[arg[0]] + arg[1] + "`";
     }).join(','));
 
@@ -315,7 +315,7 @@ let token_to_query = function (token: Array<any>): string {
 };
 
 // Generate a token for a given key and it's arguments.
-let gen_token_from_key_args = function (key: string, arg_list: Array<string>): Array<any> {
+let gen_token_from_key_args = function(key: string, arg_list: Array<string>): Array<any> {
     // Determine if this search is inclusive or exclusive.
     let addrem = SearchType.Include;
     let cond = Cond.Equal;
@@ -344,7 +344,7 @@ let gen_token_from_key_args = function (key: string, arg_list: Array<string>): A
     let new_arg_list = [];
 
     for (let arg of arg_list) {
-        let cond = Cond.Equal;
+        let cond: number = Cond.Equal;
         let narg: any = arg;
 
         if (cond_lookup.hasOwnProperty(arg[0])) {
@@ -375,7 +375,7 @@ let gen_token_from_key_args = function (key: string, arg_list: Array<string>): A
 };
 
 // If a key is referencing nested data, retrieve it.
-let dig_key_value = function (key, value): any {
+let dig_key_value = function(key: string, value: any): any {
     let key_parts = key.split('.');
 
     if (key_parts.length == 1) {
@@ -394,7 +394,7 @@ let dig_key_value = function (key, value): any {
 
 // Compose a list of tokens and then use the build_filter_fn_from_tokens
 // to create a function for the user to filter with.
-let build_fn = function (q: string, options?: {}): any {
+let build_fn = function(q: string, options?: {}): any {
     if (options == undefined) {
         options = {};
     }
@@ -404,10 +404,10 @@ let build_fn = function (q: string, options?: {}): any {
     let haystack_macro_map = options['haystack_macros'] || {};
 
     let final_tokens = string_to_search_tokens(q, macro_map, haystack_macro_map);
-    let condition_fns:Array<any> = [];
+    let condition_fns: Array<any> = [];
 
     for (let outer_token of final_tokens) {
-        let lambda = function (item: any): boolean {
+        let lambda = function(item: any): boolean {
             let ret = true;
             let [addrem, key, compose_type, args] = outer_token;
             let value = dig_key_value(key, item);
@@ -455,7 +455,7 @@ let build_fn = function (q: string, options?: {}): any {
     }
 
     //console.log(JSON.stringify(final_tokens));
-    return function (item: any, _index: number, _accum: any[]): any {
+    return function(item: any, _index: number, _accum: any[]): any {
         for (let fn of condition_fns) {
             if (fn(item) == false) {
                 return false;
