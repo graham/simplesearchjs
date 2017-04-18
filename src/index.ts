@@ -450,10 +450,21 @@ let build_fn = function(q: string, options?: {}): any {
         condition_fns.push(lambda);
     }
 
-    //console.log(JSON.stringify(final_tokens));
     return function(item: any, _index: number, _accum: any[]): any {
+        let new_item: { [id: string]: any } = {};
+
+        if (Array.isArray(item)) {
+            for (let single of item) {
+                for (let key of Object.keys(single)) {
+                    new_item[key] = single[key];
+                }
+            }
+        } else {
+            new_item = item;
+        }
+
         for (let fn of condition_fns) {
-            if (fn(item) == false) {
+            if (fn(new_item) == false) {
                 return false;
             }
         }

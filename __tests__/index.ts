@@ -2,12 +2,16 @@ import { build_fn } from 'src/index';
 
 describe('project', () => {
     it('should run the filter function', () => {
+
         const test_data = { haystack: 'this is a test' };
         const search_string = 'test';
+
         const filter = build_fn(search_string);
         const filter2 = build_fn('foo');
+
         const result = filter(test_data);
         const result2 = filter2(test_data);
+
         expect(result).toBe(true);
         expect(result2).toBe(false);
     });
@@ -279,7 +283,7 @@ describe('extra data', () => {
             { host_id: 54321 }
         ];
 
-        const search_string = 'whatever';
+        const search_string = 'host_id:12345 whatever';
 
         const filter = build_fn(search_string);
 
@@ -287,7 +291,7 @@ describe('extra data', () => {
         for (var item of test_data) {
             let extra = { 'haystack': hostname_lookup["" + item.host_id] };
 
-            if (filter(item) || filter(extra)) {
+            if (filter([item, extra])) {
                 result.push(item);
             }
         }
