@@ -14,7 +14,7 @@ describe('project', () => {
 
     it('should filter string results on basic haystack search', () => {
         const test_data = [
-            { haystack : 'this is a test' },
+            { haystack: 'this is a test' },
         ];
 
         const search_string = 'test';
@@ -265,5 +265,34 @@ describe('compose types and conditions', () => {
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('luke');
     });
+});
 
+describe('extra data', () => {
+    it('handles extra data.', () => {
+        const hostname_lookup: { [id: string]: string } = {
+            '12345': 'whatever-host',
+            '54321': 'host-of-hosts'
+        };
+
+        const test_data = [
+            { host_id: 12345 },
+            { host_id: 54321 }
+        ];
+
+        const search_string = 'whatever';
+
+        const filter = build_fn(search_string);
+
+        let result: Array<any> = [];
+        for (var item of test_data) {
+            let extra = { 'haystack': hostname_lookup["" + item.host_id] };
+
+            if (filter(item) || filter(extra)) {
+                result.push(item);
+            }
+        }
+
+        expect(result.length).toBe(1);
+        expect(result[0].host_id).toBe(12345);
+    });
 });

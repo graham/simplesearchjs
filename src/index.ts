@@ -412,10 +412,6 @@ let build_fn = function(q: string, options?: {}): any {
             let [addrem, key, compose_type, args] = outer_token;
             let value = dig_key_value(key, item);
 
-            if (key == haystack_key && value == undefined) {
-                return true;
-            }
-
             for (let arg of args) {
                 let fn_cond_enum = arg[0];
 
