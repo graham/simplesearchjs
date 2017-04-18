@@ -1,6 +1,17 @@
 import { build_fn } from 'src/index';
 
 describe('project', () => {
+    it('should run the filter function', () => {
+        var test_data = { haystack: 'this is a test' };
+        var search_string = 'test';
+        var filter = build_fn(search_string);
+        var filter2 = build_fn('foo');
+        var result = filter(test_data);
+        var result2 = filter2(test_data);
+        expect(result).toBe(true);
+        expect(result2).toBe(false);
+    });
+
     it('should filter string results on basic haystack search', () => {
         var test_data = [
             {'haystack': 'this is a test'}
