@@ -4,7 +4,7 @@
   "description": "Gmail like string search.",
   "main": "src/index.ts",
   "scripts": {
-    "lint": "tslint src/**/*",
+    "lint": "tslint '{src,__tests__}/**/*'",
     "test": "jest --coverage --verbose"
   },
   "dependencies": {
