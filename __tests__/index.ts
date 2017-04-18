@@ -8,7 +8,7 @@ describe('project', () => {
         
         var search_string:string = 'test';
         var filter = build_fn(search_string);
-        var result:any = test_data.filter(filter);
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].haystack).toBe(test_data[0]['haystack']);
@@ -22,7 +22,7 @@ describe('project', () => {
         
         var search_string:string = 'age:<30';
         var filter = build_fn(search_string);
-        var result:any = test_data.filter(filter);
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('Leia');
@@ -34,14 +34,8 @@ describe('project', () => {
         ];
 
         var search_string:string = '🔮';
-        var filter:Function = build_fn(search_string);
-        var result:any = [];
-
-        test_data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var filter = build_fn(search_string);
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].haystack).toBe(test_data[0]['haystack']);
@@ -57,23 +51,17 @@ describe('feature_macros', () => {
         ];
 
         var search_string:string = 'type:folder';
-        var macro_func:Function = (key:string, arg_list:Array<string>) => {
+        var macro_func = (key:string, arg_list:Array<string>) => {
             if (arg_list && arg_list.indexOf("folder") != -1) {
                 return ["is_dir", ["true"]];
             }
         };
 
-        var filter:Function = build_fn(search_string, {
+        var filter = build_fn(search_string, {
             macros: { 'type': macro_func }
         });
 
-        var result:any = [];
-
-        test_data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].is_dir).toBe(true);
@@ -87,13 +75,13 @@ describe('feature_macros', () => {
 
         var search_string:string = '/my';
 
-        var macro_func:Function = (key:string, arg_list:Array<string>) => {
+        var macro_func = (key:string, arg_list:Array<string>) => {
             if (arg_list && arg_list.indexOf("folder") != -1) {
                 return ["is_dir", ["true"]];
             }
         };
 
-        var haystack_macro_func:Function = (key:string): any => {
+        var haystack_macro_func = (key:string): any => {
             let conditions:Array<any> = [];
             let remaining_haystack:Array<string> = [];
 
@@ -105,18 +93,12 @@ describe('feature_macros', () => {
             return [conditions, remaining_haystack];
         };
 
-        var filter:Function = build_fn(search_string, {
+        var filter = build_fn(search_string, {
             macros: { 'type': macro_func },
             haystack_macros: {'/.*': haystack_macro_func },
         });
 
-        var result:any = [];
-
-        test_data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].is_dir).toBe(true);
@@ -126,7 +108,7 @@ describe('feature_macros', () => {
 
 describe('feature dig_into_object', () => {
     it('match on child key', () => {
-        var data = [
+        var test_data = [
             {
                 "host_id": 54321,
                 "build_history": {
@@ -144,15 +126,9 @@ describe('feature dig_into_object', () => {
         ];
 
         var search_string:string = "build_history.version:%mac";
-        var filter:Function = build_fn(search_string);
+        var filter = build_fn(search_string);
 
-        var result:any = [];
-
-        data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].host_id).toBe(54321);
@@ -161,7 +137,7 @@ describe('feature dig_into_object', () => {
 
 describe('compose types and conditions', () => {
     it('allow and conditions', () => {
-        var data = [
+        var test_data = [
             {
                 name: "Han Solo",
                 points: 200
@@ -173,22 +149,16 @@ describe('compose types and conditions', () => {
         ];
 
         var search_string:string = "points:&,<400,>100";
-        var filter:Function = build_fn(search_string);
+        var filter = build_fn(search_string);
 
-        var result:any = [];
-
-        data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].name).toBe("Han Solo");
     });
 
     it('allow or conditions', () => {
-        var data = [
+        var test_data = [
             {
                 name: "Han Solo",
                 points: 200
@@ -200,22 +170,16 @@ describe('compose types and conditions', () => {
         ];
 
         var search_string:string = "points:|,>400,<100";
-        var filter:Function = build_fn(search_string);
+        var filter = build_fn(search_string);
 
-        var result:any = [];
-
-        data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].name).toBe("Leia Organa");
     });
 
     it('allow item in list conditions', () => {
-        var data = [
+        var test_data = [
             { 'name': 'even',
               'numbers': [2,4,6,8,10]
             },
@@ -225,15 +189,9 @@ describe('compose types and conditions', () => {
         ];
 
         var search_string:string = "numbers:$2";
-        var filter:Function = build_fn(search_string);
+        var filter = build_fn(search_string);
 
-        var result:any = [];
-
-        data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('even');
@@ -246,14 +204,8 @@ describe('compose types and conditions', () => {
         ];
         
         var search_string:string = 'name:!luke';
-        var filter:Function = build_fn(search_string);
-        var result:any = [];
-
-        test_data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var filter = build_fn(search_string);
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('han');
@@ -266,14 +218,8 @@ describe('compose types and conditions', () => {
         ];
         
         var search_string:string = 'name:=luke';
-        var filter:Function = build_fn(search_string);
-        var result:any = [];
-
-        test_data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var filter = build_fn(search_string);
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('luke');
@@ -286,14 +232,8 @@ describe('compose types and conditions', () => {
         ];
         
         var search_string:string = 'name:~^..ke$';
-        var filter:Function = build_fn(search_string);
-        var result:any = [];
-
-        test_data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var filter = build_fn(search_string);
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('luke');
@@ -306,14 +246,8 @@ describe('compose types and conditions', () => {
         ];
         
         var search_string:string = 'name:%lu';
-        var filter:Function = build_fn(search_string);
-        var result:any = [];
-
-        test_data.forEach((item) => {
-            if (filter(item)) {
-                result.push(item);
-            }
-        });
+        var filter = build_fn(search_string);
+        var result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('luke');
