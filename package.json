@@ -2,8 +2,9 @@
   "name": "simplesearchjs",
   "version": "0.1.0",
   "description": "Gmail like string search.",
-  "main": "src/main.js",
+  "main": "src/index.ts",
   "scripts": {
+    "lint": "tslint src/**/*",
     "test": "jest --coverage --verbose"
   },
   "dependencies": {
@@ -28,7 +29,7 @@
       "js"
     ],
     "moduleNameMapper": {
-      "^project/(.*)$": "<rootDir>/project/$1"
+      "^src/(.*)$": "<rootDir>/src/$1"
     },
     "transform": {
       "^.+\\.(ts|tsx)$": "<rootDir>/preprocessor.js"

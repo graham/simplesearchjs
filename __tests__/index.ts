@@ -1,12 +1,12 @@
-import { build_fn } from 'project/text_to_filter_fun';
+import { build_fn } from 'src/index';
 
 describe('project', () => {
     it('should filter string results on basic haystack search', () => {
         var test_data = [
-            { 'haystack': 'this is a test' }
+            {'haystack': 'this is a test'}
         ];
 
-        var search_string: string = 'test';
+        var search_string:string = 'test';
         var filter = build_fn(search_string);
         var result = test_data.filter(filter);
 
@@ -16,11 +16,11 @@ describe('project', () => {
 
     it('should filter objects based on integer equality', () => {
         var test_data = [
-            { 'name': 'Han', 'age': 35 },
-            { 'name': 'Leia', 'age': 21 }
+            {'name':'Han', 'age': 35},
+            {'name':'Leia', 'age': 21}
         ];
 
-        var search_string: string = 'age:<30';
+        var search_string:string = 'age:<30';
         var filter = build_fn(search_string);
         var result = test_data.filter(filter);
 
@@ -30,10 +30,10 @@ describe('project', () => {
 
     it('should support emoji searches.', () => {
         var test_data = [
-            { 'haystack': 'this is a test 🔮   '} 
+            {'haystack': 'this is a test 🔮   '}
         ];
 
-        var search_string: string = '🔮';
+        var search_string:string = '🔮';
         var filter = build_fn(search_string);
         var result = test_data.filter(filter);
 
@@ -43,15 +43,15 @@ describe('project', () => {
 
 });
 
-describe('feature macros', () => {
+describe('feature_macros', () => {
     it('should expand a macro.', () => {
         var test_data = [
-            { 'is_dir': true, 'path': 'myfolder/' },
-            { 'is_dir': false, 'path': 'myfolder/myfile.txt' }
+            {'is_dir':true, 'path':'myfolder/'},
+            {'is_dir':false, 'path':'myfolder/myfile.txt'}
         ];
 
-        var search_string: string = 'type:folder';
-        var macro_func = (key: string, arg_list: Array<string>) => {
+        var search_string:string = 'type:folder';
+        var macro_func = (key:string, arg_list:Array<string>) => {
             if (arg_list && arg_list.indexOf("folder") != -1) {
                 return ["is_dir", ["true"]];
             }
@@ -69,21 +69,21 @@ describe('feature macros', () => {
 
     it('should expand a haystack macro that uses a normal macro.', () => {
         var test_data = [
-            { 'is_dir': true, 'path': 'myfolder/' },
-            { 'is_dir': false, 'path': 'myfolder/myfile.txt' }
+            {'is_dir':true, 'path':'myfolder/'},
+            {'is_dir':false, 'path':'myfolder/myfile.txt'}
         ];
 
-        var search_string: string = '/my';
+        var search_string:string = '/my';
 
-        var macro_func = (key: string, arg_list: Array<string>) => {
+        var macro_func = (key:string, arg_list:Array<string>) => {
             if (arg_list && arg_list.indexOf("folder") != -1) {
                 return ["is_dir", ["true"]];
             }
         };
 
-        var haystack_macro_func = (key: string): any => {
-            let conditions: Array<any> = [];
-            let remaining_haystack: Array<string> = [];
+        var haystack_macro_func = (key:string): any => {
+            let conditions:Array<any> = [];
+            let remaining_haystack:Array<string> = [];
 
             if (key[0] == '/') {
                 conditions.push('is_dir:true');
@@ -95,7 +95,7 @@ describe('feature macros', () => {
 
         var filter = build_fn(search_string, {
             macros: { 'type': macro_func },
-            haystack_macros: { '/.*': haystack_macro_func },
+            haystack_macros: {'/.*': haystack_macro_func },
         });
 
         var result = test_data.filter(filter);
@@ -125,7 +125,7 @@ describe('feature dig_into_object', () => {
             }
         ];
 
-        var search_string: string = "build_history.version:%mac";
+        var search_string:string = "build_history.version:%mac";
         var filter = build_fn(search_string);
 
         var result = test_data.filter(filter);
@@ -148,7 +148,7 @@ describe('compose types and conditions', () => {
             }
         ];
 
-        var search_string: string = "points:&,<400,>100";
+        var search_string:string = "points:&,<400,>100";
         var filter = build_fn(search_string);
 
         var result = test_data.filter(filter);
@@ -169,7 +169,7 @@ describe('compose types and conditions', () => {
             }
         ];
 
-        var search_string: string = "points:|,>400,<100";
+        var search_string:string = "points:|,>400,<100";
         var filter = build_fn(search_string);
 
         var result = test_data.filter(filter);
@@ -180,17 +180,15 @@ describe('compose types and conditions', () => {
 
     it('allow item in list conditions', () => {
         var test_data = [
-            {
-                'name': 'even',
-                'numbers': [2, 4, 6, 8, 10]
+            { 'name': 'even',
+              'numbers': [2,4,6,8,10]
             },
-            {
-                'name': 'odd',
-                'numbers': [1, 3, 5, 7, 9]
+            { 'name': 'odd',
+              'numbers': [1,3,5,7,9]
             }
         ];
 
-        var search_string: string = "numbers:$2";
+        var search_string:string = "numbers:$2";
         var filter = build_fn(search_string);
 
         var result = test_data.filter(filter);
@@ -201,11 +199,11 @@ describe('compose types and conditions', () => {
 
     it('allow not conditions', () => {
         var test_data = [
-            { 'name': 'han' },
-            { 'name': 'luke' }
+            {'name': 'han'},
+            {'name': 'luke'}
         ];
 
-        var search_string: string = 'name:!luke';
+        var search_string:string = 'name:!luke';
         var filter = build_fn(search_string);
         var result = test_data.filter(filter);
 
@@ -215,11 +213,11 @@ describe('compose types and conditions', () => {
 
     it('allow equal conditions', () => {
         var test_data = [
-            { 'name': 'han' },
-            { 'name': 'luke' }
+            {'name': 'han'},
+            {'name': 'luke'}
         ];
 
-        var search_string: string = 'name:=luke';
+        var search_string:string = 'name:=luke';
         var filter = build_fn(search_string);
         var result = test_data.filter(filter);
 
@@ -229,11 +227,11 @@ describe('compose types and conditions', () => {
 
     it('allow regex conditions', () => {
         var test_data = [
-            { 'name': 'han' },
-            { 'name': 'luke' }
+            {'name': 'han'},
+            {'name': 'luke'}
         ];
 
-        var search_string: string = 'name:~^..ke$';
+        var search_string:string = 'name:~^..ke$';
         var filter = build_fn(search_string);
         var result = test_data.filter(filter);
 
@@ -243,11 +241,11 @@ describe('compose types and conditions', () => {
 
     it('allow indexOf conditions', () => {
         var test_data = [
-            { 'name': 'han' },
-            { 'name': 'luke' }
+            {'name': 'han'},
+            {'name': 'luke'}
         ];
 
-        var search_string: string = 'name:%lu';
+        var search_string:string = 'name:%lu';
         var filter = build_fn(search_string);
         var result = test_data.filter(filter);
 

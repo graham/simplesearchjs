@@ -12,7 +12,7 @@
         ],
         "baseUrl": ".",
         "paths": {
-            "project/*": ["./project/*"]
+            "src/*": ["./src/*"]
         }
     },
     "exclude": [
