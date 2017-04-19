@@ -260,7 +260,9 @@ let string_to_search_tokens = function(s: string, macro_map: { [id: string]: Fun
             if (result != undefined) {
                 [key, arg_list, more_haystack] = result;
                 if (more_haystack) {
-                    final_haystack = final_haystack.concat(more_haystack);
+                    more_haystack.forEach((item) => {
+                        final_haystack.push([Cond.FastHaystack, item]);
+                    });
                 }
             }
         }
@@ -277,46 +279,6 @@ let string_to_search_tokens = function(s: string, macro_map: { [id: string]: Fun
     return final_tokens;
 };
 
-// Convert a token to something readable by a human.
-let token_to_english = function(token: Array<any>): string {
-    let [addrem, key, compose_type, args] = token;
-    let s = [];
-
-    // Search Type
-    s.push(SearchType[addrem]);
-    s.push(`results where ${key} matches`);
-
-    s.push(args.map(function(arg: any) {
-        return ' ' + Cond[arg[0]] + ' |' + arg[1] + '| ';
-    }).join(ComposeType[compose_type]));
-
-    return s.join(' ');
-};
-
-// Convert a token back to a safe query value.
-let token_to_query = function(token: Array<any>): string {
-    let [addrem, key, compose_type, args] = token;
-    let s = [];
-
-    if (addrem == SearchType.Include) {
-        //pass
-    } else if (addrem == SearchType.Exclude) {
-        s.push('-');
-    }
-
-    s.push(key);
-    s.push(':');
-
-    if (compose_type == ComposeType.AND) {
-        s.push('&,');
-    }
-
-    s.push(args.map(function(arg: any) {
-        return "`" + cond_english_lookup[arg[0]] + arg[1] + "`";
-    }).join(','));
-
-    return s.join('');
-};
 
 // Generate a token for a given key and it's arguments.
 let gen_token_from_key_args = function(key: string, arg_list: Array<string>): Array<any> {
@@ -355,9 +317,12 @@ let gen_token_from_key_args = function(key: string, arg_list: Array<string>): Ar
             narg = arg.slice(1);
         }
 
+        // make sure we get the integer value
         if (!isNaN(+narg)) {
             narg = +narg;
         }
+
+        // If the user used true or t, coerce to boolean.
         if (narg == 't' || narg == 'true') {
             narg = true;
         } else if (narg == 'f' || narg == 'false') {
@@ -418,7 +383,6 @@ let build_fn = function(q: string, options?: {}): any {
             for (let arg of args) {
                 let fn_cond_enum = arg[0];
 
-
                 if (fn_cond_enum == Cond.Unspecified) {
                     if (typeof value == 'string') {
                         fn_cond_enum = Cond.FastHaystack;
@@ -434,13 +398,11 @@ let build_fn = function(q: string, options?: {}): any {
                         ret = fn_lookup[fn_cond_enum](value, arg[1]);
                     }
                 } catch (e) {
-                    console.log("Exception in cond: ", fn_lookup[fn_cond_enum]);;
+                    console.log("Exception in cond: ", e, fn_lookup[fn_cond_enum]);;
                     ret = true;
                 }
 
-                if (addrem == SearchType.Include) {
-                    //ret;
-                } else if (addrem == SearchType.Exclude) {
+                if (addrem == SearchType.Exclude) {
                     ret = !ret;
                 }
 
@@ -481,5 +443,4 @@ let build_fn = function(q: string, options?: {}): any {
 export {
     build_fn,
     string_to_search_tokens,
-    token_to_english
 };

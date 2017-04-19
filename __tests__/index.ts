@@ -56,6 +56,63 @@ describe('project', () => {
         expect(result[0].haystack).toBe('this is a test 🔮');
     });
 
+    it('true', () => {
+        const test_data = [
+            {'cool':true},
+            {'cool':false}
+        ];
+
+        const search_string = "+cool:true";
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(1);
+    });
+
+    it('false', () => {
+        const test_data = [
+            {'cool':true},
+            {'cool':false}
+        ];
+
+        const search_string = "+cool:f";
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(1);
+    });
+    
+
+    it('string int comp', () => {
+        const test_data = [
+            {'cool':10},
+            {'cool':1}
+        ];
+
+        const search_string = "+cool:=1"
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(1);
+    });
+    
+
+    it('dont do bad comp', () => {
+        const test_data = [
+            {'cool':true},
+            {'cool':false}
+        ];
+
+        const search_string = "+cool:"
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(2);
+    });
+
+    it('should test block delimiters.', () => {
+        const test_data = [
+            {'cool':true},
+            {'cool':false}
+        ];
+
+        const search_string = "+cool:(f)";
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(1);
+    });
+    
 });
 
 describe('feature_macros', () => {
@@ -82,6 +139,29 @@ describe('feature_macros', () => {
         expect(result[0].is_dir).toBe(true);
     });
 
+    it('should expand a macro that adds things to the haystack.', () => {
+        const test_data = [
+            { is_dir: true, path: 'myfolder/', haystack:'folder'},
+            { is_dir: false, path: 'myfolder/myfile.txt' },
+        ];
+
+        const search_string = 'type:folder';
+        const macro_func = (key: string, arg_list: Array<string>) => {
+            if (arg_list && arg_list.indexOf('folder') !== -1) {
+                return ['is_dir', ['true'], ['folder']];
+            }
+        };
+
+        const filter = build_fn(search_string, {
+            macros: { type: macro_func },
+        });
+
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].is_dir).toBe(true);
+    });
+    
     it('should expand a haystack macro that uses a normal macro.', () => {
         const test_data = [
             { is_dir: true, path: 'myfolder/' },
@@ -121,6 +201,41 @@ describe('feature_macros', () => {
     });
 });
 
+describe('and and or', () => {
+    it('supports short circuit or', () => {
+        const test_data = [
+            {'cool':20},
+            {'cool':10}
+        ];
+
+        const search_string = "cool:or,20,10";
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(2);
+    });
+
+    it('supports short circuit and', () => {
+        const test_data = [
+            {'cool':50},
+            {'cool':50}
+        ];
+
+        const search_string = "cool:and,20,10";
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(0);
+    });
+
+    it('supports short circuit and', () => {
+        const test_data = [
+            {'cool':50},
+            {'cool':50}
+        ];
+
+        const search_string = "cool:and,20,10";
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(0);
+    });
+});
+
 describe('feature dig_into_object', () => {
     it('match on child key', () => {
         const test_data = [
@@ -128,25 +243,58 @@ describe('feature dig_into_object', () => {
                 host_id: 54321,
                 build_history: {
                     timestamp: 1411075727,
-                    version: 'Dropbox-mac-3.1.213',
+                    version: {
+                        'number': 'Dropbox-mac-3.1.213'
+                    }
                 },
             },
             {
                 host_id: 12345,
                 build_history: {
                     timestamp: 1411075729,
-                    version: 'Dropbox-linux-3.1.213',
+                    version: {
+                        'number': 'Dropbox-linux-3.1.213'
+                    }
                 },
             },
         ];
 
-        const search_string = 'build_history.version:%mac';
+        const search_string = 'build_history.version.number:%mac';
         const filter = build_fn(search_string);
 
         const result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
         expect(result[0].host_id).toBe(54321);
+    });
+    it('not match on child key that doesnt exist.', () => {
+        const test_data = [
+            {
+                host_id: 54321,
+                build_history: {
+                    timestamp: 1411075727,
+                    version: {
+                        'number': 'Dropbox-mac-3.1.213'
+                    }
+                },
+            },
+            {
+                host_id: 12345,
+                build_history: {
+                    timestamp: 1411075729,
+                    version: {
+                        'number': 'Dropbox-linux-3.1.213'
+                    }
+                },
+            },
+        ];
+
+        const search_string = 'build_history.version.name:%mac';
+        const filter = build_fn(search_string);
+
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(0);
     });
 });
 
@@ -165,7 +313,6 @@ describe('compose types and conditions', () => {
 
         const search_string = 'points:&,<400,>100';
         const filter = build_fn(search_string);
-
         const result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
@@ -186,7 +333,6 @@ describe('compose types and conditions', () => {
 
         const search_string = 'points:|,>400,<100';
         const filter = build_fn(search_string);
-
         const result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
@@ -207,7 +353,6 @@ describe('compose types and conditions', () => {
 
         const search_string = 'numbers:$2';
         const filter = build_fn(search_string);
-
         const result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
@@ -256,6 +401,19 @@ describe('compose types and conditions', () => {
         expect(result[0].name).toBe('luke');
     });
 
+    it('dont allow regex conditions on fields that dont exist.', () => {
+        const test_data = [
+            { name: 'han' },
+            { name: 'luke' },
+        ];
+
+        const search_string = 'last_name:/^..ke$';
+        const filter = build_fn(search_string);
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(0);
+    });
+    
     it('allow indexOf conditions', () => {
         const test_data = [
             { name: 'han' },
@@ -342,4 +500,40 @@ describe('string matching', () => {
 
         expect(result.length).toBe(0);
     });
+});
+
+describe('negative search, exclude', () => {
+    it('exclude items', () => {
+        const test_data = [
+            {'cool':20},
+            {'cool':10}
+        ];
+
+        const search_string = "-cool:20";
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(1);
+    });
+
+    it('include items', () => {
+        const test_data = [
+            {'cool':20},
+            {'cool':10}
+        ];
+
+        const search_string = "+cool:20";
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(1);
+    });
+
+    it('missing items', () => {
+        const test_data = [
+            {'cool':20, fun:'10'},
+            {'cool':10}
+        ];
+
+        const search_string = "+nope:10";
+        const results = test_data.filter(build_fn(search_string));
+        expect(results.length).toBe(0);
+    });
+
 });
