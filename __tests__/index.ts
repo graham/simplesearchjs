@@ -102,7 +102,7 @@ describe('feature_macros', () => {
 
             if (key[0] === '/') {
                 conditions.push('is_dir:true');
-                conditions.push('path:~' + key.slice(1));
+                conditions.push('path:/' + key.slice(1));
             }
 
             return [conditions, remaining_haystack];
@@ -248,7 +248,7 @@ describe('compose types and conditions', () => {
             { name: 'luke' },
         ];
 
-        const search_string = 'name:~^..ke$';
+        const search_string = 'name:/^..ke$';
         const filter = build_fn(search_string);
         const result = test_data.filter(filter);
 
@@ -298,5 +298,48 @@ describe('extra data', () => {
 
         expect(result.length).toBe(1);
         expect(result[0].host_id).toBe(12345);
+    });
+});
+
+describe('string matching', () => {
+    it('fuzzy should be default.', () => {
+        const test_data = [
+            { host_id: 12345, name: 'graham' },
+            { host_id: 54321, name: 'vutran' }
+        ];
+
+        const search_string = 'name:gra';
+
+        const filter = build_fn(search_string);
+
+        let result: Array<any> = [];
+        for (var item of test_data) {
+            if (filter([item])) {
+                result.push(item);
+            }
+        }
+
+        expect(result.length).toBe(1);
+        expect(result[0].host_id).toBe(12345);
+    });
+
+    it('fuzzy should be default.', () => {
+        const test_data = [
+            { host_id: 12345, name: 'graham' },
+            { host_id: 54321, name: 'vutran' }
+        ];
+
+        const search_string = 'name:=gra';
+
+        const filter = build_fn(search_string);
+
+        let result: Array<any> = [];
+        for (var item of test_data) {
+            if (filter([item])) {
+                result.push(item);
+            }
+        }
+
+        expect(result.length).toBe(0);
     });
 });

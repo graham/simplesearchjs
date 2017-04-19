@@ -36,6 +36,7 @@ enum SearchType {
 */
 
 enum Cond {
+    Unspecified,
     Exists,             // item[key] != undefined
     Equal,              // item[key] == value OR item[key](value)
     NotEqual,           // item[key] != value OR item[key](value)
@@ -66,8 +67,8 @@ let cond_lookup = {
     '!': Cond.NotEqual,
     '>': Cond.GreaterThan,
     '<': Cond.LessThan,
-    '~': Cond.Haystack,
-    '%': Cond.FastHaystack,
+    '/': Cond.Haystack,           // regex match.
+    '%': Cond.FastHaystack,       // indexof match.
     '?': Cond.Exists,
     '$': Cond.ArgValueInItemSeq
 };
@@ -321,7 +322,6 @@ let token_to_query = function(token: Array<any>): string {
 let gen_token_from_key_args = function(key: string, arg_list: Array<string>): Array<any> {
     // Determine if this search is inclusive or exclusive.
     let addrem = SearchType.Include;
-    let cond = Cond.Equal;
     let compose_type = ComposeType.OR;
 
     if (key[0] == '-') {
@@ -347,7 +347,7 @@ let gen_token_from_key_args = function(key: string, arg_list: Array<string>): Ar
     let new_arg_list = [];
 
     for (let arg of arg_list) {
-        let cond: number = Cond.Equal;
+        let cond: number = Cond.Unspecified;
         let narg: any = arg;
 
         if (cond_lookup.hasOwnProperty(arg[0])) {
@@ -417,6 +417,15 @@ let build_fn = function(q: string, options?: {}): any {
 
             for (let arg of args) {
                 let fn_cond_enum = arg[0];
+
+
+                if (fn_cond_enum == Cond.Unspecified) {
+                    if (typeof value == 'string') {
+                        fn_cond_enum = Cond.FastHaystack;
+                    } else {
+                        fn_cond_enum = Cond.Equal;
+                    }
+                }
 
                 try {
                     if (typeof value == "undefined") {
