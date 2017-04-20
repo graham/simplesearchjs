@@ -1,4 +1,4 @@
-/* 
+/*
    text_to_filter takes a simple (gmail like) search string and returns
    a javascript function that accepts one argument, a javascript object,
    and returns a true or false depending on if that object matches the
@@ -8,7 +8,7 @@
    on readability. This second goal is easy to overcome with macros which
    allow search criteria rewriting per use (examples below).
 
-   Generated Function -> The function returned by calling build_fn with 
+   Generated Function -> The function returned by calling build_fn with
                          some search criteria.
 
    Item -> Generally refers to the javascript object passed to the
@@ -25,11 +25,11 @@ enum SearchType {
     Exclude
 };
 
-/* 
+/*
    Cond is the basic building block of all our comparisons, more detail
    inline.
 
-   Where: 
+   Where:
      item  => passed in item.
      key   => queried key.
      value => value of argument
@@ -48,7 +48,7 @@ enum Cond {
     FastHaystack        // See implementation, uses indexOf
 };
 
-/* 
+/*
    Composition types are part of every query,
    determines how the set of conditions will be evaluated.
 */
@@ -370,6 +370,7 @@ let build_fn = function(q: string, options?: {}): any {
     let haystack_key = options['haystack_key'] || 'haystack';
     let macro_map = options['macros'] || {};
     let haystack_macro_map = options['haystack_macros'] || {};
+    let ignore_case = options.ignore_case || false;
 
     let final_tokens = string_to_search_tokens(q, macro_map, haystack_macro_map);
     let condition_fns: Array<any> = [];
@@ -395,7 +396,13 @@ let build_fn = function(q: string, options?: {}): any {
                     if (typeof value == "undefined") {
                         ret = false;
                     } else {
-                        ret = fn_lookup[fn_cond_enum](value, arg[1]);
+                        let haystack = value;
+                        let needle = arg[1];
+                        if (ignore_case && typeof needle === 'string') {
+                            haystack = haystack.toLowerCase();
+                            needle = needle.toLowerCase();
+                        }
+                        ret = fn_lookup[fn_cond_enum](haystack, needle);
                     }
                 } catch (e) {
                     console.log("Exception in cond: ", e, fn_lookup[fn_cond_enum]);;
@@ -430,6 +437,7 @@ let build_fn = function(q: string, options?: {}): any {
         } else {
             new_item = item;
         }
+
 
         for (let fn of condition_fns) {
             if (fn(new_item) == false) {

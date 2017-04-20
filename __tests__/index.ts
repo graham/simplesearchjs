@@ -2,11 +2,9 @@ import { build_fn } from 'src/index';
 
 describe('project', () => {
     it('should run the filter function', () => {
-
         const test_data = { haystack: 'this is a test' };
-        const search_string = 'test';
 
-        const filter = build_fn(search_string);
+        const filter = build_fn('test');
         const filter2 = build_fn('foo');
 
         const result = filter(test_data);
@@ -77,7 +75,7 @@ describe('project', () => {
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
-    
+
 
     it('string int comp', () => {
         const test_data = [
@@ -89,7 +87,7 @@ describe('project', () => {
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
-    
+
 
     it('dont do bad comp', () => {
         const test_data = [
@@ -112,7 +110,7 @@ describe('project', () => {
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
-    
+
 });
 
 describe('feature_macros', () => {
@@ -161,7 +159,7 @@ describe('feature_macros', () => {
         expect(result.length).toBe(1);
         expect(result[0].is_dir).toBe(true);
     });
-    
+
     it('should expand a haystack macro that uses a normal macro.', () => {
         const test_data = [
             { is_dir: true, path: 'myfolder/' },
@@ -413,7 +411,7 @@ describe('compose types and conditions', () => {
 
         expect(result.length).toBe(0);
     });
-    
+
     it('allow indexOf conditions', () => {
         const test_data = [
             { name: 'han' },
@@ -536,4 +534,26 @@ describe('negative search, exclude', () => {
         expect(results.length).toBe(0);
     });
 
+});
+
+describe('case', () => {
+    it('haystack', () => {
+        const test_data = {
+            haystack: 'Han Leia',
+        };
+
+        const filter = build_fn('han', { ignore_case: true });
+        const result = filter(test_data);
+        expect(result).toBe(true);
+    });
+
+    it('object lists', () => {
+        const test_data = [
+            { name: 'Han' },
+            { name: 'Leia' },
+        ];
+        const filter = build_fn('name:han', { ignore_case: true });
+        const results = test_data.filter(filter);
+        expect(results.length).toBe(1);
+    });
 });
