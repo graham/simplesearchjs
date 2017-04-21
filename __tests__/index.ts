@@ -225,6 +225,103 @@ describe('feature_macros', () => {
         expect(result[0].is_dir).toBe(true);
         expect(result[0].path.indexOf('my')).toBe('myfolder/'.indexOf('my'));
     });
+
+    it('should expand a haystack macro that uses a normal macro.', () => {
+        const test_data = [
+            { type:'Person', haystack:'Han Solo' },
+            { type:'Ship', haystack:'Millennium Falcon'},
+        ];
+
+        const search_string = '@Han';
+
+        const haystack_macro_func = (key: string): any => {
+            const conditions: Array<any> = [];
+            const remaining_haystack: Array<string> = [];
+
+            if (key[0] === '@') {
+                conditions.push('type:Person');
+                remaining_haystack.push(key.slice(1));                
+            }
+
+            return [conditions, remaining_haystack];
+        };
+
+        const filter = build_fn(search_string, {
+            haystack_macros: { '@.*': haystack_macro_func },
+        });
+
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+    });
+
+    it('if haystack isnt a string, coerce into a string.', () => {
+        const test_data = [
+            {'haystack': 12345}
+        ];
+
+        const search_string = '123';
+        const filter = build_fn(search_string);
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].haystack).toBe(12345);
+    });
+
+    it('if haystack isnt a string, coerce into a string ignore case.', () => {
+        const test_data = [
+            {'value': 12345}
+        ];
+
+        const search_string = 'value:i/123';
+        const filter = build_fn(search_string);
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].value).toBe(12345);
+    });
+
+    it('if haystack isnt a string, coerce into a string consider case.', () => {
+        const test_data = [
+            {'value': 12345}
+        ];
+
+        const search_string = 'value:/123';
+        const filter = build_fn(search_string);
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].value).toBe(12345);
+    });
+
+    it('if haystack isnt a string, coerce into a string consider case.', () => {
+        const test_data = [
+            {'value': 12345}
+        ];
+
+        const search_string = 'value:%123';
+        const filter = build_fn(search_string);
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].value).toBe(12345);
+    });
+
+    it('make sure regex cache is working', () => {
+        const test_data = [
+            {'words': 'WELCOME'}
+        ];
+
+        const search_string = 'words:i/welcome';
+        const filter = build_fn(search_string);
+        test_data.filter(filter);
+        test_data.filter(filter);
+        test_data.filter(filter);        
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].words).toBe("WELCOME");
+    });
 });
 
 describe('and and or', () => {
@@ -293,6 +390,7 @@ describe('feature dig_into_object', () => {
         expect(result.length).toBe(1);
         expect(result[0].host_id).toBe(54321);
     });
+
     it('not match on child key that doesnt exist.', () => {
         const test_data = [
             {
@@ -322,6 +420,19 @@ describe('feature dig_into_object', () => {
 
         expect(result.length).toBe(0);
     });
+
+    it('doesnt match if field is missing', () => {
+        const test_data = [
+            {name: 'Han'}
+        ];
+        
+        const search_string = 'last_name:i/solo';
+        const filter = build_fn(search_string);
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(0);
+    });
+
 });
 
 describe('compose types and conditions', () => {

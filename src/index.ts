@@ -160,18 +160,20 @@ fn_lookup[Cond.Haystack] = function(value: any, arg: any) {
         return false;
     } else if (target_type == "string") {
         return regex_test.test(value);
+    } else {
+        return regex_test.test("" + value);
     }
-    return false;
 };
 
 fn_lookup[Cond.InsensitiveHaystack] = function(value: any, arg: any) {
     let target_type = typeof (value);
     if (arg.length == 0) { return false; }
 
-    let regex_test: RegExp = regex_condition_cache[arg];
+    let key = 'i'+arg;
+    let regex_test: RegExp = regex_condition_cache[key];
     if (regex_test == undefined) {
         regex_test = new RegExp(arg,'i');
-        regex_condition_cache[arg] = regex_test;
+        regex_condition_cache[key] = regex_test;
     }
 
     // Coerce the type if both sides don't match.
@@ -179,8 +181,9 @@ fn_lookup[Cond.InsensitiveHaystack] = function(value: any, arg: any) {
         return false;
     } else if (target_type == "string") {
         return regex_test.test(value);
+    } else {
+        return regex_test.test("" + value);
     }
-    return false;
 };
 
 // Tokenize a search in a way that we feel good about.
@@ -411,7 +414,7 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
     let haystack_key: string = options['haystack_key'] || 'haystack';
     let macro_map = options['macros'] || {};
     let haystack_macro_map = options['haystack_macros'] || {};
-    let ignore_case = options.ignore_case || false;
+    let ignore_case = options['ignore_case'] || false;
 
     let final_tokens = string_to_search_tokens(q, macro_map, haystack_macro_map);
     let condition_fns: Array<any> = [];
