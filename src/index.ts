@@ -62,7 +62,7 @@ enum ComposeType {
 
 // Start characters can only be one charater long, may add more here in
 // the future if needed.
-let cond_lookup = {
+let cond_lookup: { [type: string]: Cond } = {
     '=': Cond.Equal,
     '!': Cond.NotEqual,
     '>': Cond.GreaterThan,
@@ -362,12 +362,12 @@ let dig_key_value = function(key: string, value: any): any {
 
 // Compose a list of tokens and then use the build_filter_fn_from_tokens
 // to create a function for the user to filter with.
-let build_fn = function(q: string, options?: {}): any {
+let build_fn = function(q: string, options?: { [key: string]: any }): any {
     if (options == undefined) {
         options = {};
     }
 
-    let haystack_key = options['haystack_key'] || 'haystack';
+    let haystack_key: string = options['haystack_key'] || 'haystack';
     let macro_map = options['macros'] || {};
     let haystack_macro_map = options['haystack_macros'] || {};
     let ignore_case = options.ignore_case || false;

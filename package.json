@@ -4,6 +4,8 @@
   "description": "Gmail like string search.",
   "main": "src/index.ts",
   "scripts": {
+    "build": "tsc --outDir ./lib",
+    "bench": "npm run build && node ./bench.js",
     "lint": "tslint '{src,__tests__}/**/*'",
     "test": "jest --coverage --verbose"
   },
@@ -12,10 +14,12 @@
   },
   "devDependencies": {
     "@types/jest": "^16.0.1",
+    "@types/node": "^7.0.13",
     "babel-core": "^6.18.2",
     "babel-jest": "^17.0.2",
     "babel-loader": "^6.2.7",
     "babel-preset-es2015": "^6.18.0",
+    "benchmark": "^2.1.4",
     "jest": "^17.0.3",
     "ts-loader": "^1.3.3",
     "tslint": "^4.3.1",
