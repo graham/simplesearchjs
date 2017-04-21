@@ -9,7 +9,7 @@ const LIST_DATA = [
     { name: 'Luke', age: 20, alliance: 'Rebel', tags:['jedi', 'has_force', 'good']  },
     { name: 'Chewbacca', age: 9000, alliance: 'Rebel', tags:['pilot', 'good'] },
     { name: 'Darth Vader', age: 60, alliance: 'Empire', tags:['fallen_jedi', 'evil'] },
-    { name: 'Palatine', age: 10000, alliance: 'Empire', tags:['evil'] },
+    { name: 'Palpatine', age: 10000, alliance: 'Empire', tags:['evil'] },
 ];
 
 suite
