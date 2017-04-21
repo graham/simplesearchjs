@@ -37,15 +37,18 @@ enum SearchType {
 
 enum Cond {
     Unspecified,
-    Exists,             // item[key] != undefined
-    Equal,              // item[key] == value OR item[key](value)
-    NotEqual,           // item[key] != value OR item[key](value)
-    LessThan,           // item[key] < value OR item[key](value)
-    GreaterThan,        // item[key] > value OR item[key](value)
-    ArgValueInItemSeq,  // value in item[key]
-    ItemValueInArgSeq,  // item[key] in value
-    Haystack,           // See implementation, allows RegEx
-    FastHaystack        // See implementation, uses indexOf
+    Exists,              // item[key] != undefined
+    Equal,               // item[key] == value OR item[key](value)
+    NotEqual,            // item[key] != value OR item[key](value)
+    LessThan,            // item[key] < value OR item[key](value)
+    LessThanOrEqual,
+    GreaterThan,         // item[key] > value OR item[key](value)
+    GreaterThanOrEqual,
+    ArgValueInItemSeq,   // value in item[key]
+    ItemValueInArgSeq,   // item[key] in value
+    Haystack,            // See implementation, allows RegEx
+    InsensitiveHaystack, // case insensitive regex.
+    FastHaystack         // See implementation, uses indexOf
 };
 
 /*
@@ -67,11 +70,19 @@ let cond_lookup: { [type: string]: Cond } = {
     '!': Cond.NotEqual,
     '>': Cond.GreaterThan,
     '<': Cond.LessThan,
-    '/': Cond.Haystack,           // regex match.
-    '%': Cond.FastHaystack,       // indexof match.
+    '/': Cond.Haystack,
+    '%': Cond.FastHaystack,
     '?': Cond.Exists,
-    '$': Cond.ArgValueInItemSeq
+    '$': Cond.ArgValueInItemSeq,
+
+    // Two character matches.
+    '!=': Cond.NotEqual,
+    'i/': Cond.InsensitiveHaystack,
+    '>=': Cond.GreaterThanOrEqual,
+    '<=': Cond.LessThanOrEqual,
 };
+
+let cond_special_characters: Array<string> = Object.keys(cond_lookup);
 
 let cond_english_lookup: { [id: number]: string } = {};
 for (let key in cond_lookup) {
@@ -97,6 +108,14 @@ fn_lookup[Cond.LessThan] = function(value: any, arg: any) {
 
 fn_lookup[Cond.GreaterThan] = function(value: any, arg: any) {
     return value > arg;
+};
+
+fn_lookup[Cond.GreaterThanOrEqual] = function(value: any, arg: any) {
+    return value >= arg;
+};
+
+fn_lookup[Cond.LessThanOrEqual] = function(value: any, arg: any) {
+    return value <= arg;
 };
 
 fn_lookup[Cond.Exists] = function(value: any, arg: any) {
@@ -133,6 +152,25 @@ fn_lookup[Cond.Haystack] = function(value: any, arg: any) {
     let regex_test: RegExp = regex_condition_cache[arg];
     if (regex_test == undefined) {
         regex_test = new RegExp(arg);
+        regex_condition_cache[arg] = regex_test;
+    }
+
+    // Coerce the type if both sides don't match.
+    if (target_type == undefined) {
+        return false;
+    } else if (target_type == "string") {
+        return regex_test.test(value);
+    }
+    return false;
+};
+
+fn_lookup[Cond.InsensitiveHaystack] = function(value: any, arg: any) {
+    let target_type = typeof (value);
+    if (arg.length == 0) { return false; }
+
+    let regex_test: RegExp = regex_condition_cache[arg];
+    if (regex_test == undefined) {
+        regex_test = new RegExp(arg,'i');
         regex_condition_cache[arg] = regex_test;
     }
 
@@ -312,9 +350,12 @@ let gen_token_from_key_args = function(key: string, arg_list: Array<string>): Ar
         let cond: number = Cond.Unspecified;
         let narg: any = arg;
 
-        if (cond_lookup.hasOwnProperty(arg[0])) {
-            cond = cond_lookup[arg[0]];
-            narg = arg.slice(1);
+        for(let i=1; i < arg.length; i++) {
+            let start = arg.slice(0, i);
+            if (cond_special_characters.indexOf(start) != -1) {
+                cond = cond_lookup[start];
+                narg = arg.slice(i);
+            }
         }
 
         // make sure we get the integer value

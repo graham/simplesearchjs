@@ -41,6 +41,34 @@ describe('project', () => {
         expect(result[0].name).toBe('Leia');
     });
 
+    it('should filter objects based on integer >=', () => {
+        const test_data = [
+            { name: 'Han', age: 35 },
+            { name: 'Leia', age: 21 },
+        ];
+
+        const search_string = 'age:>=35';
+        const filter = build_fn(search_string);
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('Han');
+    });
+
+    it('should filter objects based on integer >=', () => {
+        const test_data = [
+            { name: 'Han', age: 35 },
+            { name: 'Leia', age: 21 },
+        ];
+
+        const search_string = 'age:<=21';
+        const filter = build_fn(search_string);
+        const result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('Leia');
+    });
+
     it('should support emoji searches.', () => {
         const test_data = [
             { haystack: 'this is a test 🔮' },
@@ -555,5 +583,37 @@ describe('case', () => {
         const filter = build_fn('name:han', { ignore_case: true });
         const results = test_data.filter(filter);
         expect(results.length).toBe(1);
+    });
+
+    it('insensitive haystack', () => {
+        const test_data = [
+            { name: 'Han' },
+            { name: 'Leia' },
+        ];
+        const filter = build_fn('name:i/han');
+        const results = test_data.filter(filter);
+        expect(results.length).toBe(1);
+        expect(results[0].name).toBe('Han');
+    });
+
+    it('insensitive haystack (macro)', () => {
+        const test_data = [
+            { name: 'Han' },
+            { name: 'Leia' },
+        ];
+
+        const make_case_insensitive_macro_func = (key: string, arg_list: Array<string>) => {
+            if (arg_list) {
+                return [key, arg_list.map((item) => 'i/'+item)];
+            }
+        };
+
+        const filter = build_fn('name:han', {
+            macros: { 'name': make_case_insensitive_macro_func }
+        });
+
+        const results = test_data.filter(filter);
+        expect(results.length).toBe(1);
+        expect(results[0].name).toBe('Han');
     });
 });

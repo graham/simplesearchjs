@@ -4,12 +4,12 @@ const { build_fn } = require('./lib/src/index');
 const suite = new Benchmark.Suite;
 
 const LIST_DATA = [
-    { name: 'Han', age: 30, alliance: 'Rebel' },
-    { name: 'Leia', age: 25, alliance: 'Rebel', },
-    { name: 'Luke', age: 20, alliance: 'Rebel' },
-    { name: 'Chewbacca', age: 9000, alliance: 'Rebel' },
-    { name: 'Darth Vader', age: 60, alliance: 'Empire' },
-    { name: 'Palatine', age: 10000, alliance: 'Empire' },
+    { name: 'Han', age: 30, alliance: 'Rebel', tags:['pilot', 'has_force', 'good'] },
+    { name: 'Leia', age: 25, alliance: 'Rebel', tags:['diplomat', 'has_force', 'good'] },
+    { name: 'Luke', age: 20, alliance: 'Rebel', tags:['jedi', 'has_force', 'good']  },
+    { name: 'Chewbacca', age: 9000, alliance: 'Rebel', tags:['pilot', 'good'] },
+    { name: 'Darth Vader', age: 60, alliance: 'Empire', tags:['fallen_jedi', 'evil'] },
+    { name: 'Palatine', age: 10000, alliance: 'Empire', tags:['evil'] },
 ];
 
 suite
@@ -49,11 +49,10 @@ suite
         const filter = build_fn('age:?Han');
         LIST_DATA.filter(filter);
     })
-    /* TODO: produces undefined method value.indexOf()
     .add('list#ArgValueInItemSeq', () => {
-        const filter = build_fn('age:$Han');
+        const filter = build_fn('tags:$evil');
         LIST_DATA.filter(filter);
-    })*/
+    })
     .on('cycle', (evt) => {
         console.log(String(evt.target));
     })
