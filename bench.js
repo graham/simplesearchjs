@@ -38,15 +38,19 @@ suite
         LIST_DATA.filter(filter);
     })
     .add('list#Haystack', () => {
-        const filter = build_fn('name:/Empire');
+        const filter = build_fn('alliance:/Empire');
         LIST_DATA.filter(filter);
     })
     .add('list#FastHaystack', () => {
-        const filter = build_fn('age:%Alliance');
+        const filter = build_fn('alliance:%Reb');
+        LIST_DATA.filter(filter);
+    })
+    .add('list#InsensitiveHaystack', () => {
+        const filter = build_fn('alliance:i/rebel');
         LIST_DATA.filter(filter);
     })
     .add('list#Exists', () => {
-        const filter = build_fn('age:?Han');
+        const filter = build_fn('age:?');
         LIST_DATA.filter(filter);
     })
     .add('list#ArgValueInItemSeq', () => {
