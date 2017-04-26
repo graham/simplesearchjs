@@ -473,11 +473,7 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
         let new_item: { [id: string]: any } = {};
 
         if (Array.isArray(item)) {
-            for (let single of item) {
-                for (let key of Object.keys(single)) {
-                    new_item[key] = single[key];
-                }
-            }
+            new_item = Object.assign({}, ...item);
         } else {
             new_item = item;
         }
