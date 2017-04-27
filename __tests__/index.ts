@@ -15,9 +15,7 @@ describe('project', () => {
     });
 
     it('should filter string results on basic haystack search', () => {
-        const test_data = [
-            { haystack: 'this is a test' },
-        ];
+        const test_data = [{ haystack: 'this is a test' }];
 
         const search_string = 'test';
         const filter = build_fn(search_string);
@@ -28,10 +26,7 @@ describe('project', () => {
     });
 
     it('should filter objects based on integer equality', () => {
-        const test_data = [
-            { name: 'Han', age: 35 },
-            { name: 'Leia', age: 21 },
-        ];
+        const test_data = [{ name: 'Han', age: 35 }, { name: 'Leia', age: 21 }];
 
         const search_string = 'age:<30';
         const filter = build_fn(search_string);
@@ -42,10 +37,7 @@ describe('project', () => {
     });
 
     it('should filter objects based on integer >=', () => {
-        const test_data = [
-            { name: 'Han', age: 35 },
-            { name: 'Leia', age: 21 },
-        ];
+        const test_data = [{ name: 'Han', age: 35 }, { name: 'Leia', age: 21 }];
 
         const search_string = 'age:>=35';
         const filter = build_fn(search_string);
@@ -56,10 +48,7 @@ describe('project', () => {
     });
 
     it('should filter objects based on integer >=', () => {
-        const test_data = [
-            { name: 'Han', age: 35 },
-            { name: 'Leia', age: 21 },
-        ];
+        const test_data = [{ name: 'Han', age: 35 }, { name: 'Leia', age: 21 }];
 
         const search_string = 'age:<=21';
         const filter = build_fn(search_string);
@@ -70,9 +59,7 @@ describe('project', () => {
     });
 
     it('should support emoji searches.', () => {
-        const test_data = [
-            { haystack: 'this is a test 🔮' },
-        ];
+        const test_data = [{ haystack: 'this is a test 🔮' }];
 
         const search_string = '🔮';
         const filter = build_fn(search_string);
@@ -83,62 +70,44 @@ describe('project', () => {
     });
 
     it('true', () => {
-        const test_data = [
-            {'cool':true},
-            {'cool':false}
-        ];
+        const test_data = [{ cool: true }, { cool: false }];
 
-        const search_string = "+cool:true";
+        const search_string = '+cool:true';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
 
     it('false', () => {
-        const test_data = [
-            {'cool':true},
-            {'cool':false}
-        ];
+        const test_data = [{ cool: true }, { cool: false }];
 
-        const search_string = "+cool:f";
+        const search_string = '+cool:f';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
-
 
     it('string int comp', () => {
-        const test_data = [
-            {'cool':10},
-            {'cool':1}
-        ];
+        const test_data = [{ cool: 10 }, { cool: 1 }];
 
-        const search_string = "+cool:=1"
+        const search_string = '+cool:=1';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
 
-
     it('dont do bad comp', () => {
-        const test_data = [
-            {'cool':true},
-            {'cool':false}
-        ];
+        const test_data = [{ cool: true }, { cool: false }];
 
-        const search_string = "+cool:"
+        const search_string = '+cool:';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(2);
     });
 
     it('should test block delimiters.', () => {
-        const test_data = [
-            {'cool':true},
-            {'cool':false}
-        ];
+        const test_data = [{ cool: true }, { cool: false }];
 
-        const search_string = "+cool:(f)";
+        const search_string = '+cool:(f)';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
-
 });
 
 describe('feature_macros', () => {
@@ -167,7 +136,7 @@ describe('feature_macros', () => {
 
     it('should expand a macro that adds things to the haystack.', () => {
         const test_data = [
-            { is_dir: true, path: 'myfolder/', haystack:'folder'},
+            { is_dir: true, path: 'myfolder/', haystack: 'folder' },
             { is_dir: false, path: 'myfolder/myfile.txt' },
         ];
 
@@ -228,8 +197,8 @@ describe('feature_macros', () => {
 
     it('should expand a haystack macro that uses a normal macro.', () => {
         const test_data = [
-            { type:'Person', haystack:'Han Solo' },
-            { type:'Ship', haystack:'Millennium Falcon'},
+            { type: 'Person', haystack: 'Han Solo' },
+            { type: 'Ship', haystack: 'Millennium Falcon' },
         ];
 
         const search_string = '@Han';
@@ -240,7 +209,7 @@ describe('feature_macros', () => {
 
             if (key[0] === '@') {
                 conditions.push('type:Person');
-                remaining_haystack.push(key.slice(1));                
+                remaining_haystack.push(key.slice(1));
             }
 
             return [conditions, remaining_haystack];
@@ -256,9 +225,7 @@ describe('feature_macros', () => {
     });
 
     it('if haystack isnt a string, coerce into a string.', () => {
-        const test_data = [
-            {'haystack': 12345}
-        ];
+        const test_data = [{ haystack: 12345 }];
 
         const search_string = '123';
         const filter = build_fn(search_string);
@@ -269,9 +236,7 @@ describe('feature_macros', () => {
     });
 
     it('if haystack isnt a string, coerce into a string ignore case.', () => {
-        const test_data = [
-            {'value': 12345}
-        ];
+        const test_data = [{ value: 12345 }];
 
         const search_string = 'value:i/123';
         const filter = build_fn(search_string);
@@ -282,9 +247,7 @@ describe('feature_macros', () => {
     });
 
     it('if haystack isnt a string, coerce into a string consider case.', () => {
-        const test_data = [
-            {'value': 12345}
-        ];
+        const test_data = [{ value: 12345 }];
 
         const search_string = 'value:/123';
         const filter = build_fn(search_string);
@@ -295,9 +258,7 @@ describe('feature_macros', () => {
     });
 
     it('if haystack isnt a string, coerce into a string consider case.', () => {
-        const test_data = [
-            {'value': 12345}
-        ];
+        const test_data = [{ value: 12345 }];
 
         const search_string = 'value:%123';
         const filter = build_fn(search_string);
@@ -308,52 +269,41 @@ describe('feature_macros', () => {
     });
 
     it('make sure regex cache is working', () => {
-        const test_data = [
-            {'words': 'WELCOME'}
-        ];
+        const test_data = [{ words: 'WELCOME' }];
 
         const search_string = 'words:i/welcome';
         const filter = build_fn(search_string);
         test_data.filter(filter);
         test_data.filter(filter);
-        test_data.filter(filter);        
+        test_data.filter(filter);
         const result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
-        expect(result[0].words).toBe("WELCOME");
+        expect(result[0].words).toBe('WELCOME');
     });
 });
 
 describe('and and or', () => {
     it('supports short circuit or', () => {
-        const test_data = [
-            {'cool':20},
-            {'cool':10}
-        ];
+        const test_data = [{ cool: 20 }, { cool: 10 }];
 
-        const search_string = "cool:or,20,10";
+        const search_string = 'cool:or,20,10';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(2);
     });
 
     it('supports short circuit and', () => {
-        const test_data = [
-            {'cool':50},
-            {'cool':50}
-        ];
+        const test_data = [{ cool: 50 }, { cool: 50 }];
 
-        const search_string = "cool:and,20,10";
+        const search_string = 'cool:and,20,10';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(0);
     });
 
     it('supports short circuit and', () => {
-        const test_data = [
-            {'cool':50},
-            {'cool':50}
-        ];
+        const test_data = [{ cool: 50 }, { cool: 50 }];
 
-        const search_string = "cool:and,20,10";
+        const search_string = 'cool:and,20,10';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(0);
     });
@@ -367,8 +317,8 @@ describe('feature dig_into_object', () => {
                 build_history: {
                     timestamp: 1411075727,
                     version: {
-                        'number': 'Dropbox-mac-3.1.213'
-                    }
+                        number: 'Dropbox-mac-3.1.213',
+                    },
                 },
             },
             {
@@ -376,8 +326,8 @@ describe('feature dig_into_object', () => {
                 build_history: {
                     timestamp: 1411075729,
                     version: {
-                        'number': 'Dropbox-linux-3.1.213'
-                    }
+                        number: 'Dropbox-linux-3.1.213',
+                    },
                 },
             },
         ];
@@ -398,8 +348,8 @@ describe('feature dig_into_object', () => {
                 build_history: {
                     timestamp: 1411075727,
                     version: {
-                        'number': 'Dropbox-mac-3.1.213'
-                    }
+                        number: 'Dropbox-mac-3.1.213',
+                    },
                 },
             },
             {
@@ -407,8 +357,8 @@ describe('feature dig_into_object', () => {
                 build_history: {
                     timestamp: 1411075729,
                     version: {
-                        'number': 'Dropbox-linux-3.1.213'
-                    }
+                        number: 'Dropbox-linux-3.1.213',
+                    },
                 },
             },
         ];
@@ -422,17 +372,14 @@ describe('feature dig_into_object', () => {
     });
 
     it('doesnt match if field is missing', () => {
-        const test_data = [
-            {name: 'Han'}
-        ];
-        
+        const test_data = [{ name: 'Han' }];
+
         const search_string = 'last_name:i/solo';
         const filter = build_fn(search_string);
         const result = test_data.filter(filter);
 
         expect(result.length).toBe(0);
     });
-
 });
 
 describe('compose types and conditions', () => {
@@ -497,10 +444,7 @@ describe('compose types and conditions', () => {
     });
 
     it('allow not conditions', () => {
-        const test_data = [
-            { name: 'han' },
-            { name: 'luke' },
-        ];
+        const test_data = [{ name: 'han' }, { name: 'luke' }];
 
         const search_string = 'name:!luke';
         const filter = build_fn(search_string);
@@ -511,10 +455,7 @@ describe('compose types and conditions', () => {
     });
 
     it('allow equal conditions', () => {
-        const test_data = [
-            { name: 'han' },
-            { name: 'luke' },
-        ];
+        const test_data = [{ name: 'han' }, { name: 'luke' }];
 
         const search_string = 'name:=luke';
         const filter = build_fn(search_string);
@@ -525,10 +466,7 @@ describe('compose types and conditions', () => {
     });
 
     it('allow regex conditions', () => {
-        const test_data = [
-            { name: 'han' },
-            { name: 'luke' },
-        ];
+        const test_data = [{ name: 'han' }, { name: 'luke' }];
 
         const search_string = 'name:/^..ke$';
         const filter = build_fn(search_string);
@@ -539,10 +477,7 @@ describe('compose types and conditions', () => {
     });
 
     it('dont allow regex conditions on fields that dont exist.', () => {
-        const test_data = [
-            { name: 'han' },
-            { name: 'luke' },
-        ];
+        const test_data = [{ name: 'han' }, { name: 'luke' }];
 
         const search_string = 'last_name:/^..ke$';
         const filter = build_fn(search_string);
@@ -552,10 +487,7 @@ describe('compose types and conditions', () => {
     });
 
     it('allow indexOf conditions', () => {
-        const test_data = [
-            { name: 'han' },
-            { name: 'luke' },
-        ];
+        const test_data = [{ name: 'han' }, { name: 'luke' }];
 
         const search_string = 'name:%lu';
         const filter = build_fn(search_string);
@@ -570,13 +502,10 @@ describe('extra data', () => {
     it('handles extra data.', () => {
         const hostname_lookup: { [id: string]: string } = {
             '12345': 'whatever-host',
-            '54321': 'host-of-hosts'
+            '54321': 'host-of-hosts',
         };
 
-        const test_data = [
-            { host_id: 12345 },
-            { host_id: 54321 }
-        ];
+        const test_data = [{ host_id: 12345 }, { host_id: 54321 }];
 
         const search_string = 'host_id:12345 whatever';
 
@@ -584,7 +513,7 @@ describe('extra data', () => {
 
         let result: Array<any> = [];
         for (var item of test_data) {
-            let extra = { 'haystack': hostname_lookup["" + item.host_id] };
+            let extra = { haystack: hostname_lookup['' + item.host_id] };
 
             if (filter([item, extra])) {
                 result.push(item);
@@ -600,7 +529,7 @@ describe('string matching', () => {
     it('fuzzy should be default.', () => {
         const test_data = [
             { host_id: 12345, name: 'graham' },
-            { host_id: 54321, name: 'vutran' }
+            { host_id: 54321, name: 'vutran' },
         ];
 
         const search_string = 'name:gra';
@@ -621,7 +550,7 @@ describe('string matching', () => {
     it('fuzzy should be default.', () => {
         const test_data = [
             { host_id: 12345, name: 'graham' },
-            { host_id: 54321, name: 'vutran' }
+            { host_id: 54321, name: 'vutran' },
         ];
 
         const search_string = 'name:=gra';
@@ -641,38 +570,28 @@ describe('string matching', () => {
 
 describe('negative search, exclude', () => {
     it('exclude items', () => {
-        const test_data = [
-            {'cool':20},
-            {'cool':10}
-        ];
+        const test_data = [{ cool: 20 }, { cool: 10 }];
 
-        const search_string = "-cool:20";
+        const search_string = '-cool:20';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
 
     it('include items', () => {
-        const test_data = [
-            {'cool':20},
-            {'cool':10}
-        ];
+        const test_data = [{ cool: 20 }, { cool: 10 }];
 
-        const search_string = "+cool:20";
+        const search_string = '+cool:20';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
 
     it('missing items', () => {
-        const test_data = [
-            {'cool':20, fun:'10'},
-            {'cool':10}
-        ];
+        const test_data = [{ cool: 20, fun: '10' }, { cool: 10 }];
 
-        const search_string = "+nope:10";
+        const search_string = '+nope:10';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(0);
     });
-
 });
 
 describe('case', () => {
@@ -687,20 +606,14 @@ describe('case', () => {
     });
 
     it('object lists', () => {
-        const test_data = [
-            { name: 'Han' },
-            { name: 'Leia' },
-        ];
+        const test_data = [{ name: 'Han' }, { name: 'Leia' }];
         const filter = build_fn('name:han', { ignore_case: true });
         const results = test_data.filter(filter);
         expect(results.length).toBe(1);
     });
 
     it('insensitive haystack', () => {
-        const test_data = [
-            { name: 'Han' },
-            { name: 'Leia' },
-        ];
+        const test_data = [{ name: 'Han' }, { name: 'Leia' }];
         const filter = build_fn('name:i/han');
         const results = test_data.filter(filter);
         expect(results.length).toBe(1);
@@ -708,19 +621,19 @@ describe('case', () => {
     });
 
     it('insensitive haystack (macro)', () => {
-        const test_data = [
-            { name: 'Han' },
-            { name: 'Leia' },
-        ];
+        const test_data = [{ name: 'Han' }, { name: 'Leia' }];
 
-        const make_case_insensitive_macro_func = (key: string, arg_list: Array<string>) => {
+        const make_case_insensitive_macro_func = (
+            key: string,
+            arg_list: Array<string>
+        ) => {
             if (arg_list) {
-                return [key, arg_list.map((item) => 'i/'+item)];
+                return [key, arg_list.map(item => 'i/' + item)];
             }
         };
 
         const filter = build_fn('name:han', {
-            macros: { 'name': make_case_insensitive_macro_func }
+            macros: { name: make_case_insensitive_macro_func },
         });
 
         const results = test_data.filter(filter);
