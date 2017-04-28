@@ -20,9 +20,9 @@
    present include is assumed).
  */
 
-enum SearchType {
-    Include,
-    Exclude
+const SearchType = {
+    Include: 0,
+    Exclude: 1,
 };
 
 /*
@@ -35,20 +35,20 @@ enum SearchType {
      value => value of argument
 */
 
-enum Cond {
-    Unspecified,
-    Exists,              // item[key] != undefined
-    Equal,               // item[key] == value OR item[key](value)
-    NotEqual,            // item[key] != value OR item[key](value)
-    LessThan,            // item[key] < value OR item[key](value)
-    LessThanOrEqual,
-    GreaterThan,         // item[key] > value OR item[key](value)
-    GreaterThanOrEqual,
-    ArgValueInItemSeq,   // value in item[key]
-    ItemValueInArgSeq,   // item[key] in value
-    Haystack,            // See implementation, allows RegEx
-    InsensitiveHaystack, // case insensitive regex.
-    FastHaystack         // See implementation, uses indexOf
+const Cond = {
+    Unspecified: 0,
+    Exists: 1, // item[key] != undefined
+    Equal: 2, // item[key] == value OR item[key](value)
+    NotEqual: 3, // item[key] != value OR item[key](value)
+    LessThan: 4, // item[key] < value OR item[key](value)
+    LessThanOrEqual: 5,
+    GreaterThan: 6, // item[key] > value OR item[key](value)
+    GreaterThanOrEqual: 7,
+    ArgValueInItemSeq: 8, // value in item[key]
+    ItemValueInArgSeq: 9, // item[key] in value
+    Haystack: 10, // See implementation, allows RegEx
+    InsensitiveHaystack: 11, // case insensitive regex.
+    FastHaystack: 12, // See implementation, uses indexOf
 };
 
 /*
@@ -56,16 +56,16 @@ enum Cond {
    determines how the set of conditions will be evaluated.
 */
 
-enum ComposeType {
-    OR,          // Composeable OR
-    AND,         // Composeable AND
-    NAND,        // Composeable NAND
-    XOR          // Composeable XOR
+const ComposeType = {
+    OR: 0, // Composeable OR
+    AND: 1, // Composeable AND
+    NAND: 2, // Composeable NAND
+    XOR: 3, // Composeable XOR
 };
 
 // Start characters can only be one charater long, may add more here in
 // the future if needed.
-let cond_lookup: { [type: string]: Cond } = {
+let cond_lookup: { [type: string]: number } = {
     '=': Cond.Equal,
     '!': Cond.NotEqual,
     '>': Cond.GreaterThan,
@@ -73,7 +73,7 @@ let cond_lookup: { [type: string]: Cond } = {
     '/': Cond.Haystack,
     '%': Cond.FastHaystack,
     '?': Cond.Exists,
-    '$': Cond.ArgValueInItemSeq,
+    $: Cond.ArgValueInItemSeq,
 
     // Two character matches.
     '!=': Cond.NotEqual,
@@ -131,23 +131,27 @@ fn_lookup[Cond.ItemValueInArgSeq] = function(value: any, arg: any) {
 };
 
 fn_lookup[Cond.FastHaystack] = function(value: any, arg: any) {
-    let target_type = typeof (value);
-    if (arg.length == 0) { return false; }
+    let target_type = typeof value;
+    if (arg.length == 0) {
+        return false;
+    }
 
     // Coerce the type if both sides don't match.
     if (target_type == undefined) {
         return false;
-    } else if (target_type == "string") {
+    } else if (target_type == 'string') {
         return value.indexOf(arg) != -1;
-    } else if (target_type == "number") {
-        return ("" + value).indexOf(arg) != -1;
+    } else if (target_type == 'number') {
+        return ('' + value).indexOf(arg) != -1;
     }
     return false;
 };
 
 fn_lookup[Cond.Haystack] = function(value: any, arg: any) {
-    let target_type = typeof (value);
-    if (arg.length == 0) { return false; }
+    let target_type = typeof value;
+    if (arg.length == 0) {
+        return false;
+    }
 
     let regex_test: RegExp = regex_condition_cache[arg];
     if (regex_test == undefined) {
@@ -158,36 +162,42 @@ fn_lookup[Cond.Haystack] = function(value: any, arg: any) {
     // Coerce the type if both sides don't match.
     if (target_type == undefined) {
         return false;
-    } else if (target_type == "string") {
+    } else if (target_type == 'string') {
         return regex_test.test(value);
     } else {
-        return regex_test.test("" + value);
+        return regex_test.test('' + value);
     }
 };
 
 fn_lookup[Cond.InsensitiveHaystack] = function(value: any, arg: any) {
-    let target_type = typeof (value);
-    if (arg.length == 0) { return false; }
+    let target_type = typeof value;
+    if (arg.length == 0) {
+        return false;
+    }
 
-    let key = 'i'+arg;
+    let key = 'i' + arg;
     let regex_test: RegExp = regex_condition_cache[key];
     if (regex_test == undefined) {
-        regex_test = new RegExp(arg,'i');
+        regex_test = new RegExp(arg, 'i');
         regex_condition_cache[key] = regex_test;
     }
 
     // Coerce the type if both sides don't match.
     if (target_type == undefined) {
         return false;
-    } else if (target_type == "string") {
+    } else if (target_type == 'string') {
         return regex_test.test(value);
     } else {
-        return regex_test.test("" + value);
+        return regex_test.test('' + value);
     }
 };
 
 // Tokenize a search in a way that we feel good about.
-let safe_split = function safe_split(s: string, split_char: string, strip_block_chars?: boolean): Array<any> {
+let safe_split = function safe_split(
+    s: string,
+    split_char: string,
+    strip_block_chars?: boolean
+): Array<any> {
     if (strip_block_chars == undefined) {
         strip_block_chars = false;
     }
@@ -197,7 +207,7 @@ let safe_split = function safe_split(s: string, split_char: string, strip_block_
         "'": "'",
         '(': ')',
         '[': ']',
-        '`': '`'
+        '`': '`',
     };
 
     let partitions = [];
@@ -243,7 +253,11 @@ let safe_split = function safe_split(s: string, split_char: string, strip_block_
 };
 
 // Create a set of search tokens given a search query.
-let string_to_search_tokens = function(s: string, macro_map: { [id: string]: Function }, haystack_macro_map: { [id: string]: Function }): Array<any> {
+let string_to_search_tokens = function(
+    s: string,
+    macro_map: { [id: string]: Function },
+    haystack_macro_map: { [id: string]: Function }
+): Array<any> {
     let haystack_tokens: Array<any> = [];
     let final_tokens: Array<any> = [];
     let init_tokens: Array<string> = safe_split(s, ' ');
@@ -269,11 +283,13 @@ let string_to_search_tokens = function(s: string, macro_map: { [id: string]: Fun
             let extra_conditions: Array<any> = [];
             let more_haystack: Array<string> = [];
             if (tok.search(macro_match) != -1) {
-                [extra_conditions, more_haystack] = haystack_macro_map[macro_match](tok);
-                extra_conditions.forEach((item) => {
+                [extra_conditions, more_haystack] = haystack_macro_map[
+                    macro_match
+                ](tok);
+                extra_conditions.forEach(item => {
                     condition_tokens.push(item);
                 });
-                more_haystack.forEach((item) => {
+                more_haystack.forEach(item => {
                     final_haystack.push([Cond.FastHaystack, item]);
                 });
                 found = true;
@@ -301,7 +317,7 @@ let string_to_search_tokens = function(s: string, macro_map: { [id: string]: Fun
             if (result != undefined) {
                 [key, arg_list, more_haystack] = result;
                 if (more_haystack) {
-                    more_haystack.forEach((item) => {
+                    more_haystack.forEach(item => {
                         final_haystack.push([Cond.FastHaystack, item]);
                     });
                 }
@@ -315,14 +331,21 @@ let string_to_search_tokens = function(s: string, macro_map: { [id: string]: Fun
         }
     }
 
-    final_tokens.push([SearchType.Include, 'haystack', ComposeType.OR, final_haystack]);
+    final_tokens.push([
+        SearchType.Include,
+        'haystack',
+        ComposeType.OR,
+        final_haystack,
+    ]);
 
     return final_tokens;
 };
 
-
 // Generate a token for a given key and it's arguments.
-let gen_token_from_key_args = function(key: string, arg_list: Array<string>): Array<any> {
+let gen_token_from_key_args = function(
+    key: string,
+    arg_list: Array<string>
+): Array<any> {
     // Determine if this search is inclusive or exclusive.
     let addrem = SearchType.Include;
     let compose_type = ComposeType.OR;
@@ -353,7 +376,7 @@ let gen_token_from_key_args = function(key: string, arg_list: Array<string>): Ar
         let cond: number = Cond.Unspecified;
         let narg: any = arg;
 
-        for(let i=1; i < arg.length; i++) {
+        for (let i = 1; i < arg.length; i++) {
             let start = arg.slice(0, i);
             if (cond_special_characters.indexOf(start) != -1) {
                 cond = cond_lookup[start];
@@ -376,12 +399,7 @@ let gen_token_from_key_args = function(key: string, arg_list: Array<string>): Ar
         new_arg_list.push([cond, narg]);
     }
 
-    let new_token = [
-        addrem,
-        key,
-        compose_type,
-        new_arg_list
-    ];
+    let new_token = [addrem, key, compose_type, new_arg_list];
 
     return new_token;
 };
@@ -402,7 +420,7 @@ let dig_key_value = function(key: string, value: any): any {
     }
 
     return value;
-}
+};
 
 // Compose a list of tokens and then use the build_filter_fn_from_tokens
 // to create a function for the user to filter with.
@@ -416,7 +434,11 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
     let haystack_macro_map = options['haystack_macros'] || {};
     let ignore_case = options['ignore_case'] || false;
 
-    let final_tokens = string_to_search_tokens(q, macro_map, haystack_macro_map);
+    let final_tokens = string_to_search_tokens(
+        q,
+        macro_map,
+        haystack_macro_map
+    );
     let condition_fns: Array<any> = [];
 
     for (let outer_token of final_tokens) {
@@ -437,7 +459,7 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
                 }
 
                 try {
-                    if (typeof value == "undefined") {
+                    if (typeof value == 'undefined') {
                         ret = false;
                     } else {
                         let haystack = value;
@@ -449,7 +471,11 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
                         ret = fn_lookup[fn_cond_enum](haystack, needle);
                     }
                 } catch (e) {
-                    console.log("Exception in cond: ", e, fn_lookup[fn_cond_enum]);;
+                    console.log(
+                        'Exception in cond: ',
+                        e,
+                        fn_lookup[fn_cond_enum]
+                    );
                     ret = true;
                 }
 
@@ -478,7 +504,6 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
             new_item = item;
         }
 
-
         for (let fn of condition_fns) {
             if (fn(new_item) == false) {
                 return false;
@@ -488,7 +513,4 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
     };
 };
 
-export {
-    build_fn,
-    string_to_search_tokens,
-};
+export { build_fn, string_to_search_tokens };
