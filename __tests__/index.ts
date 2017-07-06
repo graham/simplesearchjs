@@ -36,8 +36,7 @@ describe('project', () => {
         expect(result[0].name).toBe('Leia');
     });
 
-    it('should filter objects based on integer >=', () => {
-    });
+    it('should filter objects based on integer >=', () => {});
 
     it('should filter objects based on integer >=', () => {
         const test_data = [{ name: 'Han', age: 35 }, { name: 'Leia', age: 21 }];

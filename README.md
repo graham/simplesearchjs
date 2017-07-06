@@ -43,47 +43,47 @@ Anything in the "haystack" key (which can be configured) will be used for this "
 Of course, we want to support much more complex searches as well:
 
 ```typescript
-        const test_data = [{ name: 'Han', age: 35 }, { name: 'Leia', age: 21 }];
+ const test_data = [{ name: 'Han', age: 35 }, { name: 'Leia', age: 21 }];
 
-        const search_string = 'age:>=35';
-        const filter = build_fn(search_string);
-        const result = test_data.filter(filter);
+ const search_string = 'age:>=35';
+ const filter = build_fn(search_string);
+ const result = test_data.filter(filter);
 
-        expect(result.length).toBe(1);
-        expect(result[0].name).toBe('Han');
+ expect(result.length).toBe(1);
+ expect(result[0].name).toBe('Han');
 ```
 
 We should support OR cases:
 
 ```typescript
-        const test_data = [{ cool: 20 }, { cool: 10 }];
+ const test_data = [{ cool: 20 }, { cool: 10 }];
 
-        const search_string = 'cool:or,20,10';
-        const results = test_data.filter(build_fn(search_string));
-        expect(results.length).toBe(2);
+ const search_string = 'cool:or,20,10';
+ const results = test_data.filter(build_fn(search_string));
+ expect(results.length).toBe(2);
 ```
 
 and AND cases
 
 ```typescript
-        const test_data = [{ cool: 50 }, { cool: 50 }];
+ const test_data = [{ cool: 50 }, { cool: 50 }];
 
-        const search_string = 'cool:and,20,10';
-        const results = test_data.filter(build_fn(search_string));
-        expect(results.length).toBe(0);
+ const search_string = 'cool:and,20,10';
+ const results = test_data.filter(build_fn(search_string));
+ expect(results.length).toBe(0);
 ```
 
 case insensitive searches
 
 ```typescript
-        const test_data = [{ words: 'WELCOME' }];
+ const test_data = [{ words: 'WELCOME' }];
 
-        const search_string = 'words:i/welcome';
-        const filter = build_fn(search_string);
-        const result = test_data.filter(filter);
+ const search_string = 'words:i/welcome';
+ const filter = build_fn(search_string);
+ const result = test_data.filter(filter);
 
-        expect(result.length).toBe(1);
-        expect(result[0].words).toBe('WELCOME');
+ expect(result.length).toBe(1);
+ expect(result[0].words).toBe('WELCOME');
 ```
 
 We support "digging" into objects based on child objects:
@@ -91,125 +91,125 @@ We support "digging" into objects based on child objects:
 (% is similar to SQL LIKE)
 
 ```typescript
-        const test_data = [
-            {
-                host_id: 54321,
-                build_history: {
-                    timestamp: 1411075727,
-                    version: {
-                        number: 'Service-mac-3.1.213',
-                    },
-                },
-            },
-            {
-                host_id: 12345,
-                build_history: {
-                    timestamp: 1411075729,
-                    version: {
-                        number: 'Service-linux-3.1.213',
-                    },
-                },
-            },
-        ];
+ const test_data = [
+     {
+       host_id: 54321,
+       build_history: {
+       timestamp: 1411075727,
+       version: {
+         number: 'Service-mac-3.1.213',
+         },
+       },
+     },
+     {
+       host_id: 12345,
+       build_history: {
+       timestamp: 1411075729,
+       version: {
+         number: 'Service-linux-3.1.213',
+         },
+       },
+     },
+ ];
 
-        const search_string = 'build_history.version.number:%mac';
-        const filter = build_fn(search_string);
+ const search_string = 'build_history.version.number:%mac';
+ const filter = build_fn(search_string);
 
-        const result = test_data.filter(filter);
+ const result = test_data.filter(filter);
 
-        expect(result.length).toBe(1);
-        expect(result[0].host_id).toBe(54321);
+ expect(result.length).toBe(1);
+ expect(result[0].host_id).toBe(54321);
 ```
 
 what about regex?
 
 ```typescript
-        const test_data = [{ name: 'han' }, { name: 'luke' }];
+ const test_data = [{ name: 'han' }, { name: 'luke' }];
 
-        const search_string = 'name:/^..ke$';
-        const filter = build_fn(search_string);
-        const result = test_data.filter(filter);
+ const search_string = 'name:/^..ke$';
+ const filter = build_fn(search_string);
+ const result = test_data.filter(filter);
 
-        expect(result.length).toBe(1);
-        expect(result[0].name).toBe('luke');
+ expect(result.length).toBe(1);
+ expect(result[0].name).toBe('luke');
 ```
 
 Fuzzy search:
 
 ```typescript
-        const test_data = [
-            { host_id: 12345, name: 'graham' },
-            { host_id: 54321, name: 'vutran' },
-        ];
+ const test_data = [
+     { host_id: 12345, name: 'graham' },
+     { host_id: 54321, name: 'vutran' },
+ ];
 
-        const search_string = 'name:gra';
+ const search_string = 'name:gra';
 
-        const filter = build_fn(search_string);
+ const filter = build_fn(search_string);
 
-        let result: Array<any> = [];
-        for (var item of test_data) {
-            if (filter([item])) {
-                result.push(item);
-            }
-        }
+ let result: Array<any> = [];
+ for (var item of test_data) {
+     if (filter([item])) {
+         result.push(item);
+     }
+ }
 
-        expect(result.length).toBe(1);
-        expect(result[0].host_id).toBe(12345);
+ expect(result.length).toBe(1);
+ expect(result[0].host_id).toBe(12345);
 ```
 
 exact search:
 
 ```typescript
-        const test_data = [
-            { host_id: 12345, name: 'graham' },
-            { host_id: 54321, name: 'vutran' },
-        ];
+ const test_data = [
+     { host_id: 12345, name: 'graham' },
+     { host_id: 54321, name: 'vutran' },
+ ];
 
-        const search_string = 'name:=gra';
+ const search_string = 'name:=gra';
 
-        const filter = build_fn(search_string);
+ const filter = build_fn(search_string);
 
-        let result: Array<any> = [];
-        for (var item of test_data) {
-            if (filter([item])) {
-                result.push(item);
-            }
-        }
+ let result: Array<any> = [];
+ for (var item of test_data) {
+     if (filter([item])) {
+         result.push(item);
+     }
+ }
 
-        expect(result.length).toBe(0);
+ expect(result.length).toBe(0);
 ```
 
 Negative (or reductive) search:
 
 ```typescript
-        const test_data = [{ cool: 20 }, { cool: 10 }];
+ const test_data = [{ cool: 20 }, { cool: 10 }];
 
-        const search_string = '-cool:20';
-        const results = test_data.filter(build_fn(search_string));
-        expect(results.length).toBe(1);
+ const search_string = '-cool:20';
+ const results = test_data.filter(build_fn(search_string));
+ expect(results.length).toBe(1);
 ```
 
 And macros
 
 ```typescript
-        const test_data = [{ name: 'Han' }, { name: 'Leia' }];
+ const test_data = [{ name: 'Han' }, { name: 'Leia' }];
 
-        const make_case_insensitive_macro_func = (
-            key: string,
-            arg_list: Array<string>
-        ) => {
-            if (arg_list) {
-                return [key, arg_list.map(item => 'i/' + item)];
-            }
-        };
+ const make_case_insensitive_macro_func = (
+     key: string,
+     arg_list: Array<string>
+ ) => {
+     if (arg_list) {
+          return [key, arg_list.map(item => 'i/' + item)];
+     }
+ };
 
-        const filter = build_fn('name:han', {
-            macros: { name: make_case_insensitive_macro_func },
-        });
+ const filter = build_fn('name:han', {
+     macros: { name: make_case_insensitive_macro_func },
+ });
 
-        const results = test_data.filter(filter);
-        expect(results.length).toBe(1);
-        expect(results[0].name).toBe('Han');
+ const results = test_data.filter(filter);
+ expect(results.length).toBe(1);
+ expect(results[0].name).toBe('Han');
 ```
 
 We also support emojis :)
