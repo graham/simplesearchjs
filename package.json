@@ -1,6 +1,6 @@
 {
   "name": "simplesearchjs",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Gmail like string search.",
   "main": "src/index.ts",
   "scripts": {
@@ -13,7 +13,8 @@
   "dependencies": {
     "tslib": "^1.5.0"
   },
-  "devDependencies": {
+    "devDependencies": {
+        "node": ">=6.0.0",
     "@types/jest": "^16.0.1",
     "@types/node": "^7.0.13",
     "babel-core": "^6.18.2",

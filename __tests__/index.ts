@@ -37,14 +37,6 @@ describe('project', () => {
     });
 
     it('should filter objects based on integer >=', () => {
-        const test_data = [{ name: 'Han', age: 35 }, { name: 'Leia', age: 21 }];
-
-        const search_string = 'age:>=35';
-        const filter = build_fn(search_string);
-        const result = test_data.filter(filter);
-
-        expect(result.length).toBe(1);
-        expect(result[0].name).toBe('Han');
     });
 
     it('should filter objects based on integer >=', () => {
@@ -273,9 +265,6 @@ describe('feature_macros', () => {
 
         const search_string = 'words:i/welcome';
         const filter = build_fn(search_string);
-        test_data.filter(filter);
-        test_data.filter(filter);
-        test_data.filter(filter);
         const result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
