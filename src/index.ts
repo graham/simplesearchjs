@@ -464,9 +464,13 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
                     } else {
                         let haystack = value;
                         let needle = arg[1];
-                        if (ignore_case && typeof needle === 'string') {
-                            haystack = haystack.toLowerCase();
-                            needle = needle.toLowerCase();
+                        if (ignore_case) {
+                            if (typeof needle === 'string') {
+                                needle = needle.toLowerCase();
+                            }
+                            if (typeof haystack === 'string') {
+                                haystack = haystack.toLowerCase();
+                            }
                         }
                         ret = fn_lookup[fn_cond_enum](haystack, needle);
                     }
