@@ -423,7 +423,7 @@ let dig_key_value = function(key: string, value: any): any {
     if (key == undefined) {
         return undefined;
     }
-    
+
     let key_parts = key.split('.');
 
     if (key_parts.length == 1) {
