@@ -35,9 +35,7 @@ describe('project', () => {
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('Leia');
     });
-
-    it('should filter objects based on integer >=', () => {});
-
+    
     it('should filter objects based on integer >=', () => {
         const test_data = [{ name: 'Han', age: 35 }, { name: 'Leia', age: 21 }];
 
@@ -87,11 +85,21 @@ describe('project', () => {
     it('dont do bad comp', () => {
         const test_data = [{ cool: true }, { cool: false }];
 
-        const search_string = '+cool:';
+        const search_string = 'cool:';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(2);
     });
 
+    it('dont do bad comp with flags', () => {
+        const test_data = [{ cool: true }, { cool: false }];
+
+        const search_string = 'cool:';
+        const results = test_data.filter(build_fn(search_string, {
+            haystack_as_one_token:true,
+        }));
+        expect(results.length).toBe(2);
+    });
+    
     it('should test block delimiters.', () => {
         const test_data = [{ cool: true }, { cool: false }];
 
@@ -598,6 +606,17 @@ describe('case', () => {
         const filter = build_fn('name:han', { ignore_case: true });
         const results = test_data.filter(filter);
         expect(results.length).toBe(1);
+    });
+
+    it('object lists 2', () => {
+        const test_data = [{ name: 'Han', type:"Vendor" }, { name: 'Leia' }];
+        const extra_data = {type:"Vendor"};
+        const filter = build_fn('type:Vendor', {
+            ignore_case: true,
+            haystack_as_one_token:true,
+        });
+        const result = filter([test_data[0], extra_data]);
+        expect(result).toBe(true);
     });
 
     it('insensitive haystack', () => {

@@ -20,7 +20,7 @@
    present include is assumed).
 */
 
-const BLOCK_CHARS = {
+const BLOCK_CHARS: { [id:string]: string } = {
     '"': '"',
     "'": "'",
     '(': ')',
@@ -283,7 +283,7 @@ let string_to_search_tokens = function(
         }
     }
 
-    if (haystack_as_one_token == true) {
+    if (haystack_as_one_token == true && haystack_tokens.length > 0) {
         haystack_tokens = [haystack_tokens.join(' ')];
     }
 
