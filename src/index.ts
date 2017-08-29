@@ -218,7 +218,10 @@ let safe_split = function safe_split(
     for (let i = 0; i < s.length; i++) {
         let chr = s[i];
         if (in_block) {
-            if (chr == block_chars[block_start_char]) {
+            if (
+                block_start_char !== null &&
+                chr == block_chars[block_start_char]
+            ) {
                 if (!strip_block_chars) {
                     current_word.push(chr);
                 }
@@ -359,7 +362,7 @@ let gen_token_from_key_args = function(
     }
 
     if (arg_list.length == 0) {
-        return null;
+        return [];
     }
 
     if (arg_list[0] == '&' || arg_list[0] == 'and') {
