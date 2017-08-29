@@ -73,7 +73,7 @@ let cond_lookup: { [type: string]: number } = {
     '/': Cond.Haystack,
     '%': Cond.FastHaystack,
     '?': Cond.Exists,
-    '$': Cond.ArgValueInItemSeq,
+    $: Cond.ArgValueInItemSeq,
 
     // Two character matches.
     '!=': Cond.NotEqual,
