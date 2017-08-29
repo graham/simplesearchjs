@@ -465,7 +465,16 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
         let lambda = function(item: any): boolean {
             let ret = true;
             let [addrem, key, compose_type, args] = outer_token;
+
             let value = dig_key_value(key, item);
+
+            // This occurs when we have an empty arg often,
+            // search = 'tag:' (likley we need more input)
+            // we fail open/true here because it shouldn't
+            // modify the valid parts of the search.
+            if (key == undefined && value == undefined) {
+                return true;
+            }
 
             for (let arg of args) {
                 let fn_cond_enum = arg[0];
