@@ -20,7 +20,7 @@
    present include is assumed).
 */
 
-const BLOCK_CHARS: { [id:string]: string } = {
+const BLOCK_CHARS: { [id: string]: string } = {
     '"': '"',
     "'": "'",
     '(': ')',
