@@ -81,7 +81,7 @@ let cond_lookup: { [type: string]: number } = {
     '/': Cond.Haystack,
     '%': Cond.FastHaystack,
     '?': Cond.Exists,
-    '$': Cond.ArgValueInItemSeq,
+    $: Cond.ArgValueInItemSeq,
 
     // Two character matches.
     '!=': Cond.NotEqual,
@@ -259,7 +259,7 @@ let string_to_search_tokens = function(
     s: string,
     macro_map: { [id: string]: Function },
     haystack_macro_map: { [id: string]: Function },
-    haystack_as_one_token: boolean,
+    haystack_as_one_token: boolean
 ): Array<any> {
     let haystack_tokens: Array<any> = [];
     let final_tokens: Array<any> = [];
@@ -270,8 +270,8 @@ let string_to_search_tokens = function(
     for (let tok of init_tokens) {
         let index = tok.search(':');
         if (index == -1) {
-            if (BLOCK_CHARS[tok[0]] == tok[tok.length-1]) {
-                haystack_tokens.push(tok.slice(1, tok.length-1));
+            if (BLOCK_CHARS[tok[0]] == tok[tok.length - 1]) {
+                haystack_tokens.push(tok.slice(1, tok.length - 1));
             } else {
                 haystack_tokens.push(tok);
             }
@@ -281,7 +281,7 @@ let string_to_search_tokens = function(
     }
 
     if (haystack_as_one_token == true) {
-        haystack_tokens = [ haystack_tokens.join(' ') ];
+        haystack_tokens = [haystack_tokens.join(' ')];
     }
 
     // Next we macro expand haystack conditions, which are regexes, and can only
@@ -444,13 +444,13 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
     let macro_map = options['macros'] || {};
     let haystack_macro_map = options['haystack_macros'] || {};
     let ignore_case = options['ignore_case'] || false;
-    let haystack_as_one_token = options['haystack_as_one_token'] || false
+    let haystack_as_one_token = options['haystack_as_one_token'] || false;
 
     let final_tokens = string_to_search_tokens(
         q,
         macro_map,
         haystack_macro_map,
-        haystack_as_one_token,
+        haystack_as_one_token
     );
     let condition_fns: Array<any> = [];
 

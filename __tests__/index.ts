@@ -445,19 +445,19 @@ describe('compose types and conditions', () => {
     it('allow equal conditions', () => {
         const test_data = [{ name: 'han' }, { name: 'luke' }];
 
-         const search_string = 'name:=luke';
-         const filter = build_fn(search_string);
-         const result = test_data.filter(filter);
+        const search_string = 'name:=luke';
+        const filter = build_fn(search_string);
+        const result = test_data.filter(filter);
 
-         expect(result.length).toBe(1);
-         expect(result[0].name).toBe('luke');
-     });
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('luke');
+    });
 
-     it('allow regex conditions', () => {
-         const test_data = [{ name: 'han' }, { name: 'luke' }];
+    it('allow regex conditions', () => {
+        const test_data = [{ name: 'han' }, { name: 'luke' }];
 
-         const search_string = 'name:/^..ke$';
-         const filter = build_fn(search_string);
+        const search_string = 'name:/^..ke$';
+        const filter = build_fn(search_string);
         const result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
@@ -636,7 +636,7 @@ describe('haystack multi word', () => {
             haystack: 'one two three four',
         };
 
-        const filter = build_fn('"two three"')
+        const filter = build_fn('"two three"');
         const result = filter(test_data);
         expect(result).toBe(true);
 
@@ -658,12 +658,12 @@ describe('haystack multi word', () => {
             haystack: 'one two three four',
         };
 
-        const filter = build_fn('two three', {haystack_as_one_token:true});
+        const filter = build_fn('two three', { haystack_as_one_token: true });
         const result = filter(test_data);
         expect(result).toBe(true);
 
-        const filter2 = build_fn('one four', {haystack_as_one_token:true});
+        const filter2 = build_fn('one four', { haystack_as_one_token: true });
         const result2 = filter2(test_data);
         expect(result2).toBe(false);
     });
-})
+});
