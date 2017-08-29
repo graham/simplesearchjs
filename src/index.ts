@@ -18,7 +18,15 @@
    item in the search result. Prepending a '\' or '-' before a condition
    sets that criteria to exclude, '+' or '/' for include (if neither are
    present include is assumed).
- */
+*/
+
+const BLOCK_CHARS = {
+    '"': '"',
+    "'": "'",
+    '(': ')',
+    '[': ']',
+    '`': '`',
+};
 
 const SearchType = {
     Include: 0,
@@ -202,13 +210,7 @@ let safe_split = function safe_split(
         strip_block_chars = false;
     }
 
-    let block_chars: { [id: string]: string } = {
-        '"': '"',
-        "'": "'",
-        '(': ')',
-        '[': ']',
-        '`': '`',
-    };
+    let block_chars: { [id: string]: string } = BLOCK_CHARS;
 
     let partitions = [];
     let current_word = [];
@@ -256,7 +258,8 @@ let safe_split = function safe_split(
 let string_to_search_tokens = function(
     s: string,
     macro_map: { [id: string]: Function },
-    haystack_macro_map: { [id: string]: Function }
+    haystack_macro_map: { [id: string]: Function },
+    haystack_as_one_token: boolean,
 ): Array<any> {
     let haystack_tokens: Array<any> = [];
     let final_tokens: Array<any> = [];
@@ -267,10 +270,18 @@ let string_to_search_tokens = function(
     for (let tok of init_tokens) {
         let index = tok.search(':');
         if (index == -1) {
-            haystack_tokens.push(tok);
+            if (BLOCK_CHARS[tok[0]] == tok[tok.length-1]) {
+                haystack_tokens.push(tok.slice(1, tok.length-1));
+            } else {
+                haystack_tokens.push(tok);
+            }
         } else {
             condition_tokens.push(tok);
         }
+    }
+
+    if (haystack_as_one_token == true) {
+        haystack_tokens = [ haystack_tokens.join(' ') ];
     }
 
     // Next we macro expand haystack conditions, which are regexes, and can only
@@ -433,11 +444,13 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
     let macro_map = options['macros'] || {};
     let haystack_macro_map = options['haystack_macros'] || {};
     let ignore_case = options['ignore_case'] || false;
+    let haystack_as_one_token = options['haystack_as_one_token'] || false
 
     let final_tokens = string_to_search_tokens(
         q,
         macro_map,
-        haystack_macro_map
+        haystack_macro_map,
+        haystack_as_one_token,
     );
     let condition_fns: Array<any> = [];
 

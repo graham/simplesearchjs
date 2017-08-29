@@ -1,4 +1,4 @@
-import { build_fn } from 'src/index';
+import { build_fn, string_to_search_tokens } from 'src/index';
 
 describe('project', () => {
     it('should run the filter function', () => {
@@ -445,19 +445,19 @@ describe('compose types and conditions', () => {
     it('allow equal conditions', () => {
         const test_data = [{ name: 'han' }, { name: 'luke' }];
 
-        const search_string = 'name:=luke';
-        const filter = build_fn(search_string);
-        const result = test_data.filter(filter);
+         const search_string = 'name:=luke';
+         const filter = build_fn(search_string);
+         const result = test_data.filter(filter);
 
-        expect(result.length).toBe(1);
-        expect(result[0].name).toBe('luke');
-    });
+         expect(result.length).toBe(1);
+         expect(result[0].name).toBe('luke');
+     });
 
-    it('allow regex conditions', () => {
-        const test_data = [{ name: 'han' }, { name: 'luke' }];
+     it('allow regex conditions', () => {
+         const test_data = [{ name: 'han' }, { name: 'luke' }];
 
-        const search_string = 'name:/^..ke$';
-        const filter = build_fn(search_string);
+         const search_string = 'name:/^..ke$';
+         const filter = build_fn(search_string);
         const result = test_data.filter(filter);
 
         expect(result.length).toBe(1);
@@ -629,3 +629,41 @@ describe('case', () => {
         expect(results[0].name).toBe('Han');
     });
 });
+
+describe('haystack multi word', () => {
+    it('quoted words', () => {
+        const test_data = {
+            haystack: 'one two three four',
+        };
+
+        const filter = build_fn('"two three"')
+        const result = filter(test_data);
+        expect(result).toBe(true);
+
+        const filter2 = build_fn('two four');
+        const result2 = filter2(test_data);
+        expect(result2).toBe(true);
+
+        const filter3 = build_fn('"one four"');
+        const result3 = filter3(test_data);
+        expect(result3).toBe(false);
+
+        const filter4 = build_fn('"two three" one');
+        const result4 = filter4(test_data);
+        expect(result4).toBe(true);
+    });
+
+    it('haystack as one token by default.', () => {
+        const test_data = {
+            haystack: 'one two three four',
+        };
+
+        const filter = build_fn('two three', {haystack_as_one_token:true});
+        const result = filter(test_data);
+        expect(result).toBe(true);
+
+        const filter2 = build_fn('one four', {haystack_as_one_token:true});
+        const result2 = filter2(test_data);
+        expect(result2).toBe(false);
+    });
+})
