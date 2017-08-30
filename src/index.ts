@@ -549,7 +549,7 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
 
 let fn_cache: { [id: string]: any } = {};
 let cached_build_fn = function(q: string, options?: { [key: string]: any }): any {
-    if (fn_cache[q] != undefined) {
+    if (fn_cache[q] == undefined) {
         fn_cache[q] = build_fn(q, options);
     }
 

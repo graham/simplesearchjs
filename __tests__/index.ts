@@ -693,7 +693,8 @@ describe('cached_build_fn', () => {
     it('does cache searches', () => {
         var fn1 = cached_build_fn("test");
         var fn2 = cached_build_fn("test");
-
+        var fn3 = cached_build_fn("asdf");
         expect(fn1).toEqual(fn2);
+        expect(fn1).not.toEqual(fn3);
     })
 })
