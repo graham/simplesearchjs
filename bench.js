@@ -1,5 +1,5 @@
 const Benchmark = require('benchmark');
-const { build_fn } = require('./lib/src/index');
+const { build_fn, cached_build_fn } = require('./lib/src/index');
 
 const suite = new Benchmark.Suite;
 
@@ -15,6 +15,10 @@ const LIST_DATA = [
 suite
     .add('list#Equal', () => {
         const filter = build_fn('name:Han');
+        LIST_DATA.filter(filter);
+    })
+    .add('list#Equal (cached)', () => {
+        const filter = cached_build_fn('name:Han');
         LIST_DATA.filter(filter);
     })
     .add('list#Equal (ignore-case)', () => {
