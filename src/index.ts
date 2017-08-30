@@ -546,4 +546,14 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
     };
 };
 
-export { build_fn, string_to_search_tokens };
+
+let fn_cache: { [id: string]: any } = {};
+let cached_build_fn = function(q: string, options?: { [key: string]: any }): any {
+    if (fn_cache[q] != undefined) {
+        fn_cache[q] = build_fn(q, options);
+    }
+
+    return fn_cache[q];
+}
+
+export { build_fn, cached_build_fn, string_to_search_tokens };

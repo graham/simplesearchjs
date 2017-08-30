@@ -1,4 +1,4 @@
-import { build_fn, string_to_search_tokens } from 'src/index';
+import { build_fn, cached_build_fn, string_to_search_tokens } from 'src/index';
 
 describe('project', () => {
     it('should run the filter function', () => {
@@ -688,3 +688,12 @@ describe('haystack multi word', () => {
         expect(result2).toBe(false);
     });
 });
+
+describe('cached_build_fn', () => {
+    it('does cache searches', () => {
+        var fn1 = cached_build_fn("test");
+        var fn2 = cached_build_fn("test");
+
+        expect(fn1).toEqual(fn2);
+    })
+})
