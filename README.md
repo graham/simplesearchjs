@@ -5,7 +5,7 @@ Easy to use gmail like search for your data.
 The goal of simple search is to provide powerful search features to your users (via a text field) and simple search implementation for developers (via a single javascript function).
 
 ## For the user
-If you're interacting with simplesearch, this document will help you understand how to use it (User Guide)[https://github.com/graham/simplesearchjs/blob/master/user_readme.md]
+If you're interacting with simplesearch, this document will help you understand how to use it [User Guide](https://github.com/graham/simplesearchjs/blob/master/user_readme.md)
 
 ## For the developer
 All you'll need is some text input, you can pass that to the "build_fn" function from simplesearchjs, and you'll receive a callback that can take a single object (or list of objects). Depending on the search criteria it will return a boolean of if the search matched that object.
