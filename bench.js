@@ -41,6 +41,10 @@ suite
         const filter = build_fn('age:<9000');
         LIST_DATA.filter(filter);
     })
+    .add('list#LessThan (cached)', () => {
+        const filter = cached_build_fn('age:<9000');
+        LIST_DATA.filter(filter);
+    })
     .add('list#Haystack', () => {
         const filter = build_fn('alliance:/Empire');
         LIST_DATA.filter(filter);
