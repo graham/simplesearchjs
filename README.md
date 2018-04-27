@@ -2,10 +2,38 @@
 Easy to use gmail like search for your data.
 
 ## What Simple Search Does
-The goal of simple search is to provide powerful search features to your users (via a text field) and simple search implementation for developers (via a single javascript function).
+The goal of simple search is to turn a simple text string into a closure that you can `filter` a list with. Keeping it easy for users to learn, and powerful for developers to use.
 
-## For the user
+## For the user (work in progress)
 If you're interacting with simplesearch, this document will help you understand how to use it [User Guide](https://github.com/graham/simplesearchjs/blob/master/user_readme.md)
+
+## Crash Course
+While the document above is still in progress, let me give you a quick overview and a broad overview of conditions you can use.
+
+The assumed usage of simplesearchjs is something like this:
+
+ 1. User inputs a string
+ 2. Your app builds a function that takes a single object or string and returns a boolean if it matches.
+ 3. You iterate over your data with the function.
+
+Taken from the code base, here are some example conditions you can use:
+
+```
+    '=': Cond.Equal,
+    '!': Cond.NotEqual,
+    '>': Cond.GreaterThan,
+    '<': Cond.LessThan,
+    '/': Cond.Haystack,
+    '%': Cond.FastHaystack,
+    '?': Cond.Exists,
+    '$': Cond.ArgValueInItemSeq,
+
+    // Two character matches.
+    '!=': Cond.NotEqual,
+    'i/': Cond.InsensitiveHaystack,
+    '>=': Cond.GreaterThanOrEqual,
+    '<=': Cond.LessThanOrEqual,
+```
 
 ## For the developer
 All you'll need is some text input, you can pass that to the "build_fn" function from simplesearchjs, and you'll receive a callback that can take a single object (or list of objects). Depending on the search criteria it will return a boolean of if the search matched that object.
