@@ -327,9 +327,9 @@ let string_to_search_tokens = function(
         let key: string = tok.slice(0, index);
         let arg_list = safe_split(tok.slice(index + 1), ',', true);
 
-        if (key == '') {
+        if (key == '' || key == '_' || key == '+_') {
             key = haystack_key;
-        } else if (key == '-') {
+        } else if (key == '-' || key == '-_') {
             key = '-' + haystack_key;
         }
 
@@ -357,7 +357,7 @@ let string_to_search_tokens = function(
 
     final_tokens.push([
         SearchType.Include,
-        'haystack',
+        haystack_key,
         ComposeType.OR,
         final_haystack,
     ]);
@@ -457,6 +457,7 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
         options = {};
     }
 
+    q = q.trim();
     let haystack_key: string = options['haystack_key'] || 'haystack';
     let macro_map = options['macros'] || {};
     let haystack_macro_map = options['haystack_macros'] || {};

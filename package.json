@@ -4,7 +4,7 @@
   "description": "Gmail like string search.",
   "main": "src/index.ts",
   "scripts": {
-    "build": "tsc --outDir ./lib",
+    "build": "tsc --outDir ./build",
     "bench": "npm run build && node ./bench.js",
     "lint": "prettier --parser typescript --single-quote --trailing-comma es5 --tab-width 4 --write \"{src,__tests__}/**/*.ts{,x}\"",
     "test": "jest --coverage --verbose"
@@ -30,18 +30,20 @@
     "typescript-eslint-parser": "^7.0.0",
     "webpack": "^3.5.5"
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/src/$1"
-    },
-    "transform": {
-      "^.+\\.(ts|tsx)$": "<rootDir>/preprocessor.js"
-    },
-    "testRegex": "/__tests__/.*\\.(ts|tsx|js)$"
-  }
+    "jest": {
+        "moduleFileExtensions": [
+            "ts",
+            "tsx",
+            "js"
+        ],
+        "moduleNameMapper": {
+            "^src/(.*)$": "<rootDir>/src/$1"
+        },
+        "transform": {
+            "^.+\\.(ts|tsx)$": "<rootDir>/preprocessor.js"
+        },
+        "testRegex": "/__tests__/.*\\.(ts|tsx|js)$",
+        "verbose": true,
+        "testPathIgnorePatterns": ["<rootDir>/build/", "<rootDir>/node_modules/"]
+    }
 }
