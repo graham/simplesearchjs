@@ -161,8 +161,13 @@ fn_lookup[Cond.Haystack] = function(value: any, arg: any) {
 
     let regex_test: RegExp = regex_condition_cache[arg];
     if (regex_test == undefined) {
-        regex_test = new RegExp(arg);
-        regex_condition_cache[arg] = regex_test;
+        try {
+            regex_test = new RegExp(arg);
+            regex_condition_cache[arg] = regex_test;
+        } catch {
+            // the regex failed to compile
+            return false;
+        }
     }
 
     // Coerce the type if both sides don't match.
