@@ -715,4 +715,13 @@ describe('special funky features', () => {
         var fn1 = build_fn(":/[a-z]{4}");
         expect(fn1(test_data)).toEqual(true);
     });
+
+    it('bar -: is a negative haystack', () => {
+        const test_data = {
+            haystack: 'asdf',
+        };
+        var fn1 = build_fn("-:asdf");
+        expect(fn1(test_data)).toEqual(false);
+    })
+    
 })

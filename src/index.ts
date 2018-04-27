@@ -324,6 +324,8 @@ let string_to_search_tokens = function(
 
         if (key == '') {
             key = haystack_key;
+        } else if (key == '-') {
+            key = '-' + haystack_key;
         }
 
         let macro: Function = macro_map[key];
