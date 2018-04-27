@@ -1,4 +1,4 @@
-import { build_fn, cached_build_fn, string_to_search_tokens } from 'src/index';
+import { build_fn, string_to_search_tokens } from 'src/index';
 
 describe('project', () => {
     it('should run the filter function', () => {
@@ -105,7 +105,7 @@ describe('project', () => {
     it('should test block delimiters.', () => {
         const test_data = [{ cool: true }, { cool: false }];
 
-        const search_string = '+cool:(f)';
+        const search_string = '+cool:`f`';
         const results = test_data.filter(build_fn(search_string));
         expect(results.length).toBe(1);
     });
@@ -691,10 +691,28 @@ describe('haystack multi word', () => {
 
 describe('cached_build_fn', () => {
     it('does cache searches', () => {
-        var fn1 = cached_build_fn("test");
-        var fn2 = cached_build_fn("test");
-        var fn3 = cached_build_fn("asdf");
+        var fn1 = build_fn("test");
+        var fn2 = build_fn("test");
+        var fn3 = build_fn("asdf");
         expect(fn1).toEqual(fn2);
         expect(fn1).not.toEqual(fn3);
-    })
+    });
+})
+
+describe('special funky features', () => {
+    it('bare :', () => {
+        const test_data = {
+            haystack: 'asdf',
+        };
+        var fn1 = build_fn(":asdf");
+        expect(fn1(test_data)).toEqual(true);
+    });
+
+    it('complex regular expressions work.', () => {
+        const test_data = {
+            haystack: 'asdf',
+        };
+        var fn1 = build_fn(":/[a-z]{4}");
+        expect(fn1(test_data)).toEqual(true);
+    });
 })

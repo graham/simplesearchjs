@@ -23,8 +23,6 @@
 const BLOCK_CHARS: { [id: string]: string } = {
     '"': '"',
     "'": "'",
-    '(': ')',
-    '[': ']',
     '`': '`',
 };
 
@@ -262,7 +260,8 @@ let string_to_search_tokens = function(
     s: string,
     macro_map: { [id: string]: Function },
     haystack_macro_map: { [id: string]: Function },
-    haystack_as_one_token: boolean
+    haystack_as_one_token: boolean,
+    haystack_key: string,
 ): Array<any> {
     let haystack_tokens: Array<any> = [];
     let final_tokens: Array<any> = [];
@@ -322,6 +321,10 @@ let string_to_search_tokens = function(
         let index = tok.search(':');
         let key: string = tok.slice(0, index);
         let arg_list = safe_split(tok.slice(index + 1), ',', true);
+
+        if (key == '') {
+            key = haystack_key;
+        }
 
         let macro: Function = macro_map[key];
         let more_haystack: Array<string> = [];
@@ -457,7 +460,8 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
         q,
         macro_map,
         haystack_macro_map,
-        haystack_as_one_token
+        haystack_as_one_token,
+        haystack_key,
     );
     let condition_fns: Array<any> = [];
 
