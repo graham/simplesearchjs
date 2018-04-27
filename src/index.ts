@@ -442,7 +442,7 @@ let dig_key_value = function(key: string, value: any): any {
 
 // Compose a list of tokens and then use the build_filter_fn_from_tokens
 // to create a function for the user to filter with.
-let build_fn = function(q: string, options?: { [key: string]: any }): any {
+let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
     if (options == undefined) {
         options = {};
     }
@@ -533,6 +533,10 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
 
         if (Array.isArray(item)) {
             new_item = Object.assign({}, ...item);
+        } else if (typeof item === "string") {
+            new_item = {};
+            new_item[haystack_key] = item;
+            new_item['_'] = item;
         } else {
             new_item = item;
         }
@@ -548,12 +552,19 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
 
 
 let fn_cache: { [id: string]: any } = {};
-let cached_build_fn = function(q: string, options?: { [key: string]: any }): any {
+let build_fn = function(q: string, options?: { [key: string]: any }): any {
     if (fn_cache[q] == undefined) {
-        fn_cache[q] = build_fn(q, options);
+        fn_cache[q] = new_build_fn(q, options);
     }
 
     return fn_cache[q];
 }
 
-export { build_fn, cached_build_fn, string_to_search_tokens };
+let cached_build_fn = build_fn;
+
+export {
+    build_fn,
+    cached_build_fn,
+    new_build_fn,
+    string_to_search_tokens,
+};

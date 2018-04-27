@@ -219,3 +219,23 @@ We also support emojis :)
 
 The tests and benchmarks will provide you with most of what you need to get started. If you have any ideas for additional comparisons, or features, just create an issue and I'll write it as fast as I can.
 
+# A note on performance
+Performance is really important in situations like this, so in addition to some pretty extensive testing, I keep track of benchmarks as well:
+
+```
+list#Equal x 801,447 ops/sec ±0.59% (93 runs sampled)
+list#Equal (ignore-case) x 681,686 ops/sec ±0.40% (95 runs sampled)
+list#NotEqual x 628,202 ops/sec ±0.43% (94 runs sampled)
+list#NotEqual (ignore-case) x 550,369 ops/sec ±0.28% (95 runs sampled)
+list#GreaterThan x 630,617 ops/sec ±0.56% (94 runs sampled)
+list#LessThan x 667,986 ops/sec ±1.41% (94 runs sampled)
+list#Haystack x 658,522 ops/sec ±0.49% (94 runs sampled)
+list#FastHaystack x 577,439 ops/sec ±1.14% (96 runs sampled)
+list#InsensitiveHaystack x 377,481 ops/sec ±0.91% (95 runs sampled)
+list#Exists x 1,050,781 ops/sec ±0.64% (96 runs sampled)
+list#ArgValueInItemSeq x 682,241 ops/sec ±0.55% (97 runs sampled)
+list#haystack_pure_string_list x 925,137 ops/sec ±0.41% (95 runs sampled)
+list#LessThan (no cache) x 216,089 ops/sec ±0.86% (86 runs sampled)
+```
+
+Your results may vary :)

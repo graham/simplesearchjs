@@ -1,5 +1,5 @@
 const Benchmark = require('benchmark');
-const { build_fn, cached_build_fn } = require('./lib/src/index');
+const { build_fn, new_build_fn } = require('./lib/src/index');
 
 const suite = new Benchmark.Suite;
 
@@ -12,13 +12,11 @@ const LIST_DATA = [
     { name: 'Palpatine', age: 10000, alliance: 'Empire', tags:['evil'] },
 ];
 
+const STR_DATA = [ 'one', 'two', 'three', 'four' ];
+
 suite
     .add('list#Equal', () => {
         const filter = build_fn('name:Han');
-        LIST_DATA.filter(filter);
-    })
-    .add('list#Equal (cached)', () => {
-        const filter = cached_build_fn('name:Han');
         LIST_DATA.filter(filter);
     })
     .add('list#Equal (ignore-case)', () => {
@@ -41,10 +39,6 @@ suite
         const filter = build_fn('age:<9000');
         LIST_DATA.filter(filter);
     })
-    .add('list#LessThan (cached)', () => {
-        const filter = cached_build_fn('age:<9000');
-        LIST_DATA.filter(filter);
-    })
     .add('list#Haystack', () => {
         const filter = build_fn('alliance:/Empire');
         LIST_DATA.filter(filter);
@@ -63,6 +57,14 @@ suite
     })
     .add('list#ArgValueInItemSeq', () => {
         const filter = build_fn('tags:$evil');
+        LIST_DATA.filter(filter);
+    })
+    .add('list#haystack_pure_string_list', () => {
+        const filter = build_fn('o');
+        STR_DATA.filter(filter);
+    })
+    .add('list#LessThan (no cache)', () => {
+        const filter = new_build_fn('age:<9000');
         LIST_DATA.filter(filter);
     })
     .on('cycle', (evt) => {
