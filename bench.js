@@ -1,5 +1,5 @@
 const Benchmark = require('benchmark');
-const { build_fn, new_build_fn } = require('./lib/src/index');
+const { build_fn, new_build_fn } = require('./build/src/index');
 
 const suite = new Benchmark.Suite;
 
