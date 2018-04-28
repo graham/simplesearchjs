@@ -562,6 +562,28 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
     };
 };
 
+let string_to_english(q): string {
+    let tokens = string_to_search_tokens(
+        q,
+        {},
+        {},
+        false,
+        undefined,
+    );
+
+    let response = [];
+    for (var c of tokens) {
+        let [addrem, key, compose_type, args] = c;
+        response.push([
+            addrem ? "skip" : "match",
+            key,
+            compose_type,
+            args,
+        ].join(' '))
+    }
+
+    return response;
+}
 
 let fn_cache: { [id: string]: any } = {};
 let build_fn = function(q: string, options?: { [key: string]: any }): any {
@@ -579,4 +601,5 @@ export {
     cached_build_fn,
     new_build_fn,
     string_to_search_tokens,
+    string_to_english,
 };
