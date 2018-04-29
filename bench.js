@@ -56,7 +56,11 @@ suite
         LIST_DATA.filter(filter);
     })
     .add('list#ArgValueInItemSeq', () => {
-        const filter = build_fn('tags:$evil');
+        const filter = build_fn('tags:has:evil');
+        LIST_DATA.filter(filter);
+    })
+    .add('list#ValueInArgList', () => {
+        const filter = build_fn('age:in:25,30');
         LIST_DATA.filter(filter);
     })
     .add('list#haystack_pure_string_list', () => {

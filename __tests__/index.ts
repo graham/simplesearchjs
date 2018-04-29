@@ -421,26 +421,6 @@ describe('compose types and conditions', () => {
         expect(result[0].name).toBe('Leia Organa');
     });
 
-    it('allow item in list conditions', () => {
-        const test_data = [
-            {
-                name: 'even',
-                numbers: [2, 4, 6, 8, 10],
-            },
-            {
-                name: 'odd',
-                numbers: [1, 3, 5, 7, 9],
-            },
-        ];
-
-        const search_string = 'numbers:$2';
-        const filter = build_fn(search_string);
-        const result = test_data.filter(filter);
-
-        expect(result.length).toBe(1);
-        expect(result[0].name).toBe('even');
-    });
-
     it('allow not conditions', () => {
         const test_data = [{ name: 'han' }, { name: 'luke' }];
 
@@ -725,3 +705,103 @@ describe('special funky features', () => {
     })
     
 })
+
+describe('list and value in list functions.', () => {
+    
+    it('allow item in list conditions', () => {
+        let test_data = [
+            {
+                name: 'even',
+                numbers: [2, 4, 6, 8, 10],
+            },
+            {
+                name: 'odd',
+                numbers: [1, 3, 5, 7, 9],
+            },
+        ];
+
+        let search_string = 'numbers:has:10';
+        let filter = build_fn(search_string);
+        let result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].name).toBe('even');
+    });
+
+    it('allow item to be in list', () => {
+        let test_data = [
+            {
+            value: 4
+            },
+        ];
+
+        let search_string = 'value:in:2,3,4,5';
+        let filter = build_fn(search_string);
+        let result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].value).toBe(4);
+    });
+
+    it('complex membership test', () => {
+        let test_data = [
+            {
+            title: "a story",
+            tags: ["funny", "truth"],
+            },
+            {
+            title: "another story",
+            tags: ["other"],
+            },
+        ];
+
+        let search_string = 'tags:and,has:truth,has:funny';
+        let filter = build_fn(search_string);
+        let result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].title).toBe("a story");
+        
+        search_string = 'tags:or,has:truth,has:blue';
+        filter = build_fn(search_string);
+        result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);        
+        expect(result[0].title).toBe("a story");
+
+        search_string = 'tags:has:other';
+        filter = build_fn(search_string);
+        result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);        
+        expect(result[0].title).toBe("another story");
+    });
+
+    it('complex negative membership test', () => {
+        let test_data = [
+            {
+            title: "a story",
+            tags: ["funny", "truth"],
+            },
+            {
+            title: "another story",
+            tags: ["other"],
+            },
+        ];
+
+        let search_string = 'tags:!has:other';
+        let filter = build_fn(search_string);
+        let result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].title).toBe("a story");
+
+        search_string = 'tags:and,!has:truth,!has:foo';
+        filter = build_fn(search_string);
+        result = test_data.filter(filter);
+
+        expect(result.length).toBe(1);
+        expect(result[0].title).toBe("another story");
+    });
+ 
+});

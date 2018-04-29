@@ -52,9 +52,11 @@ const Cond = {
     GreaterThanOrEqual: 7,
     ArgValueInItemSeq: 8, // value in item[key]
     ItemValueInArgSeq: 9, // item[key] in value
-    Haystack: 10, // See implementation, allows RegEx
-    InsensitiveHaystack: 11, // case insensitive regex.
-    FastHaystack: 12, // See implementation, uses indexOf
+    ArgValueNotInItemSeq: 10,
+    ItemValueNotInArgSeq: 11,
+    Haystack: 12, // See implementation, allows RegEx
+    InsensitiveHaystack: 13, // case insensitive regex.
+    FastHaystack: 14, // See implementation, uses indexOf
 };
 
 /*
@@ -79,7 +81,12 @@ let cond_lookup: { [type: string]: number } = {
     '/': Cond.Haystack,
     '%': Cond.FastHaystack,
     '?': Cond.Exists,
-    $: Cond.ArgValueInItemSeq,
+
+    'has:': Cond.ArgValueInItemSeq,
+    'in:': Cond.ItemValueInArgSeq,
+
+    '!has:': Cond.ArgValueNotInItemSeq,
+    '!in:': Cond.ItemValueNotInArgSeq,
 
     // Two character matches.
     '!=': Cond.NotEqual,
@@ -133,7 +140,14 @@ fn_lookup[Cond.ArgValueInItemSeq] = function(value: any, arg: any) {
 };
 
 fn_lookup[Cond.ItemValueInArgSeq] = function(value: any, arg: any) {
-    return arg.indexOf(value) == -1;
+    if (value == arg) {
+        return true;
+    }
+    return false;
+};
+
+fn_lookup[Cond.ArgValueNotInItemSeq] = function(value: any, arg: any) {
+    return value.indexOf(arg) == -1;
 };
 
 fn_lookup[Cond.FastHaystack] = function(value: any, arg: any) {
