@@ -164,7 +164,7 @@ fn_lookup[Cond.Haystack] = function(value: any, arg: any) {
         try {
             regex_test = new RegExp(arg);
             regex_condition_cache[arg] = regex_test;
-        } catch {
+        } catch (e) {
             // the regex failed to compile
             return false;
         }
@@ -413,11 +413,13 @@ let gen_token_from_key_args = function(
             narg = +narg;
         }
 
-        // If the user used true or t, coerce to boolean.
-        if (narg == 't' || narg == 'true') {
-            narg = true;
-        } else if (narg == 'f' || narg == 'false') {
-            narg = false;
+        if (cond != Cond.Haystack && cond != Cond.InsensitiveHaystack) {
+            // If the user used true or t, coerce to boolean.
+            if (narg == 't' || narg == 'true') {
+                narg = true;
+            } else if (narg == 'f' || narg == 'false') {
+                narg = false;
+            }
         }
 
         new_arg_list.push([cond, narg]);
@@ -562,28 +564,6 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
     };
 };
 
-let string_to_english(q): string {
-    let tokens = string_to_search_tokens(
-        q,
-        {},
-        {},
-        false,
-        undefined,
-    );
-
-    let response = [];
-    for (var c of tokens) {
-        let [addrem, key, compose_type, args] = c;
-        response.push([
-            addrem ? "skip" : "match",
-            key,
-            compose_type,
-            args,
-        ].join(' '))
-    }
-
-    return response;
-}
 
 let fn_cache: { [id: string]: any } = {};
 let build_fn = function(q: string, options?: { [key: string]: any }): any {
@@ -601,5 +581,4 @@ export {
     cached_build_fn,
     new_build_fn,
     string_to_search_tokens,
-    string_to_english,
 };
