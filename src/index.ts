@@ -445,7 +445,7 @@ let gen_token_from_key_args = function(
 };
 
 // If a key is referencing nested data, retrieve it.
-let dig_key_value = function(key: string, value: any): any {
+let dig_key_value = function(value: any, key: string): any {
     if (key == undefined) {
         return undefined;
     }
@@ -465,6 +465,33 @@ let dig_key_value = function(key: string, value: any): any {
 
     return value;
 };
+
+let dig_sort = function(arrayVar: Array<any>, key?:string, reverse?: boolean) {
+    let DEFAULT_MISSING_VALUE = Number.MAX_VALUE;
+
+    if (reverse == true) {
+	DEFAULT_MISSING_VALUE = Number.MIN_VALUE;
+    }
+
+    if (key) {
+	arrayVar.sort( function(a:any, b:any): number {
+	    let aValue = dig_key_value(a, key) || DEFAULT_MISSING_VALUE;
+	    let bValue = dig_key_value(b, key) || DEFAULT_MISSING_VALUE;
+	    return aValue-bValue;
+	});
+    } else {
+	arrayVar.sort( function(a:any, b:any): number {
+	    let aValue = a || DEFAULT_MISSING_VALUE;
+	    let bValue = b || DEFAULT_MISSING_VALUE;
+	    return aValue-bValue;
+	});
+    }
+
+    if (reverse) {
+	arrayVar.reverse();
+    }
+}
+
 
 // Compose a list of tokens and then use the build_filter_fn_from_tokens
 // to create a function for the user to filter with.
@@ -494,7 +521,7 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
             let ret = true;
             let [addrem, key, compose_type, args] = outer_token;
 
-            let value = dig_key_value(key, item);
+            let value = dig_key_value(item, key);
 
             // This occurs when we have an empty arg often,
             // search = 'tag:' (likley we need more input)
@@ -595,4 +622,6 @@ export {
     cached_build_fn,
     new_build_fn,
     string_to_search_tokens,
+    dig_sort,
+    dig_key_value,
 };

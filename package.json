@@ -13,18 +13,10 @@
     "devDependencies": {
         "@types/jest": "^20.0.8",
         "@types/node": "^8.0.26",
-        "babel-core": "^6.26.0",
-        "babel-jest": "^20.0.3",
-        "babel-loader": "^7.1.2",
-        "babel-preset-es2015": "^6.18.0",
-        "benchmark": "^2.1.4",
-        "coveralls": "^2.13.3",
-        "husky": "^0.14.3",
-        "jest": "^20.0.4",
-        "prettier": "github:prettier/prettier#4b3835925e87706c66f88efc4d94dadd3ce0db1c",
-        "ts-loader": "^2.3.4",
+        "jest": "^25.0.0",
+        "ts-loader": "^6.0.4",
         "tslib": "^1.9.0",
-        "typescript": "^2.7.2",
+        "typescript": "^3.5.3",
         "typescript-eslint-parser": "^7.0.0"
     },
     "jest": {
