@@ -9,7 +9,8 @@
         "lint": "prettier --parser typescript --single-quote --trailing-comma es5 --tab-width 4 --write \"{src,__tests__}/**/*.ts{,x}\"",
         "test": "jest --coverage --verbose"
     },
-    "dependencies": {},
+    "dependencies": {
+    },
     "devDependencies": {
         "@types/jest": "^20.0.8",
         "@types/node": "^8.0.26",
