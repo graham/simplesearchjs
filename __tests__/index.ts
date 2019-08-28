@@ -393,7 +393,7 @@ describe('compose types and conditions', () => {
             },
         ];
 
-        const search_string = 'points:&,<400,>100';
+        const search_string = 'points:and,<400,>100';
         const filter = build_fn(search_string);
         const result = test_data.filter(filter);
 
@@ -413,7 +413,7 @@ describe('compose types and conditions', () => {
             },
         ];
 
-        const search_string = 'points:|,>400,<100';
+        const search_string = 'points:or,>400,<100';
         const filter = build_fn(search_string);
         const result = test_data.filter(filter);
 
@@ -802,6 +802,28 @@ describe('list and value in list functions.', () => {
 
         expect(result.length).toBe(1);
         expect(result[0].title).toBe("another story");
+    });
+
+    it('should handle additive searches correctly.', () => {
+        let test_data = [
+            {
+            title: "a story",
+            tags: ["funny", "truth"],
+            },
+            {
+            title: "another story",
+            tags: ["other"],
+            },
+    	    {title: 'not me', tags:[]},
+        ];
+	
+        let search_string = '+tags:has:other +tags:has:truth';
+        let filter = build_fn(search_string);
+        let result = test_data.filter(filter);
+
+    	expect(result[0].title).toBe('a story');
+    	expect(result[1].title).toBe('another story');
+
     });
  
 });

@@ -29,6 +29,7 @@ const BLOCK_CHARS: { [id: string]: string } = {
 const SearchType = {
     Include: 0,
     Exclude: 1,
+    Additive: 2,
 };
 
 /*
@@ -329,7 +330,7 @@ let string_to_search_tokens = function(
         }
 
         if (!found) {
-            final_haystack.push([Cond.FastHaystack, tok]);
+            final_haystack.push([Cond.InsensitiveHaystack, tok]);
         }
     }
 
@@ -392,7 +393,7 @@ let gen_token_from_key_args = function(
         addrem = SearchType.Exclude;
         key = key.slice(1);
     } else if (key[0] == '+') {
-        addrem = SearchType.Include;
+        addrem = SearchType.Additive;
         key = key.slice(1);
     }
 
@@ -400,10 +401,10 @@ let gen_token_from_key_args = function(
         return [];
     }
 
-    if (arg_list[0] == '&' || arg_list[0] == 'and') {
+    if (arg_list[0] == 'and') {
         compose_type = ComposeType.AND;
         arg_list = arg_list.slice(1);
-    } else if (arg_list[0] == '|' || arg_list[0] == 'or') {
+    } else if (arg_list[0] == 'or') {
         compose_type = ComposeType.OR;
         arg_list = arg_list.slice(1);
     }
@@ -515,12 +516,16 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
         haystack_key,
     );
     let condition_fns: Array<any> = [];
+    let use_additive = false;
 
     for (let outer_token of final_tokens) {
+	if (outer_token[0] == SearchType.Additive) {
+	    use_additive = true;
+	}
+
         let lambda = function(item: any): boolean {
             let ret = true;
             let [addrem, key, compose_type, args] = outer_token;
-
             let value = dig_key_value(item, key);
 
             // This occurs when we have an empty arg often,
@@ -580,7 +585,7 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
 
             return ret;
         };
-        condition_fns.push(lambda);
+        condition_fns.push([outer_token[0], lambda]);
     }
 
     return function(item: any, _index: number, _accum: any[]): any {
@@ -596,18 +601,66 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
             new_item = item;
         }
 
-        for (let fn of condition_fns) {
-            if (fn(new_item) == false) {
-                return false;
+	if (use_additive) {
+	    let normal_fns = condition_fns.filter(([ar, fn]) => ar != SearchType.Additive);
+	    let additive_fns = condition_fns.filter(([ar, fn]) => ar == SearchType.Additive);
+
+	    let current_ret = true;
+	    if (additive_fns.length > 0) {
+		current_ret = false;
+		additive_fns.forEach( ([_, fn]) => {
+		    current_ret = current_ret || fn(new_item);
+		});
+		if (!current_ret) {
+		    return false;
+		}
+	    }
+
+	    if (normal_fns.length > 0) {
+		normal_fns.forEach(([_, fn]) => {
+		    current_ret = current_ret && fn(new_item);
+		});
+		if (!current_ret) {
+		    return false;
+		}
+	    }
+	    return true;
+	} else {
+            for (let [addrem, fn] of condition_fns) {
+		if (fn(new_item) == false) {
+                    return false;
+		}
             }
-        }
-        return true;
+            return true;
+	}
     };
 };
 
 
 let fn_cache: { [id: string]: any } = {};
 let build_fn = function(q: string, options?: { [key: string]: any }): any {
+    let command_split_char = '|'
+    if (q.indexOf(command_split_char) != -1) {
+	let chunks = q.split(command_split_char);
+	let fns = [];
+	chunks.forEach((chunk) => {
+	    let chunk_fn = new_build_fn(chunk, options);
+	    fns.push(chunk_fn);
+	});
+
+	fns.reverse();
+
+	return function(item: any, _index: number, _accum: any[]): any {
+	    for (let i=0; i < fns.length; i++) {
+		let fn = fns[i];
+		if (fn(item, _index, _accum) == false) {
+		    return false;
+		}
+	    }
+	    return true;	    
+	};
+    }
+
     if (fn_cache[q] == undefined) {
         fn_cache[q] = new_build_fn(q, options);
     }
@@ -617,11 +670,44 @@ let build_fn = function(q: string, options?: { [key: string]: any }): any {
 
 let cached_build_fn = build_fn;
 
+let search_and_sort = (list:Array<any>, query:string, options:any): Array<any> => {
+    let sort_desc_char = '\\>';
+    let sort_asc_char = '\\<';
+
+    let sort_key = null;
+    let sort_reverse = false;
+
+    let search_query = query;
+
+    if (query.indexOf(sort_desc_char) != -1) {
+	let sp = search_query.split(sort_desc_char);
+	search_query = sp[0].trim();
+	sort_key = sp[1].trim();
+	sort_reverse = true;
+    } else if (query.indexOf(sort_asc_char) != -1) {
+	let sp = search_query.split(sort_asc_char);
+	search_query = sp[0].trim();
+	sort_key = sp[1].trim();
+	sort_reverse = false;
+    }
+
+    let fn = build_fn(search_query, options);
+
+    let filtered_rows = list.filter(fn);
+
+    if (sort_key != null) {
+	dig_sort(filtered_rows, sort_key, sort_reverse);
+    }
+	
+    return filtered_rows;
+}
+
 export {
     build_fn,
     cached_build_fn,
     new_build_fn,
     string_to_search_tokens,
-    dig_sort,
     dig_key_value,
+    dig_sort,
+    search_and_sort,
 };

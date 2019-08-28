@@ -15,6 +15,10 @@ const LIST_DATA = [
 const STR_DATA = [ 'one', 'two', 'three', 'four' ];
 
 suite
+    .add('list#additive_search', () => {
+        const filter = build_fn('+age:<9000 +age:<20');
+        LIST_DATA.filter(filter);
+    })
     .add('list#Equal', () => {
         const filter = build_fn('name:Han');
         LIST_DATA.filter(filter);
