@@ -20,11 +20,120 @@
    present include is assumed).
 */
 
+// If a key is referencing nested data, retrieve it.
+let dig_key = function(value: any, key: string): any {
+    if (key == undefined) {
+        return undefined;
+    }
+
+    let key_parts = key.split('.');
+
+    if (key_parts.length == 1) {
+        return value[key];
+    } else {
+        for (let part of key_parts) {
+            if (value[part] == undefined) {
+                return undefined;
+            }
+            value = value[part];
+        }
+    }
+
+    return value;
+};
+
+let dig_sort = function(arrayVar: Array<any>, key?: string, reverse?: boolean) {
+    let DEFAULT_MISSING_VALUE = Number.MAX_VALUE;
+
+    if (reverse == true) {
+        DEFAULT_MISSING_VALUE = Number.MIN_VALUE;
+    }
+
+    if (key) {
+        arrayVar.sort(function(a: any, b: any): number {
+            let aValue = dig_key(a, key) || DEFAULT_MISSING_VALUE;
+            let bValue = dig_key(b, key) || DEFAULT_MISSING_VALUE;
+            return aValue - bValue;
+        });
+    } else {
+        arrayVar.sort(function(a: any, b: any): number {
+            let aValue = a || DEFAULT_MISSING_VALUE;
+            let bValue = b || DEFAULT_MISSING_VALUE;
+            return aValue - bValue;
+        });
+    }
+
+    if (reverse) {
+        arrayVar.reverse();
+    }
+};
+
+let dig_group_by = function(arrayVar: Array<any>, key:string) {
+    let ret = {};
+
+    arrayVar.forEach((row, index) => {
+	let value = dig_key(row, key);
+
+	if (ret[value] == undefined) {
+	    ret[value] = [row];
+	} else {
+	    ret[value].push(row);
+	}
+    });
+
+    return ret;
+};
+
+
+let dig_get = function(obj, key) {
+    if (!obj) {
+	return obj;
+    }
+
+    let split_key = ".";
+    
+    if (key.indexOf(split_key) == -1) {
+        return obj[key];
+    } else {
+        let cur = key.split(split_key, 1);
+        let rest = key.split(split_key).slice(1).join(split_key);
+        return this.dig_get(obj[cur], rest);
+    }
+};
+
+let dig_set = function(obj, key, value) {
+    let split_key = ".";
+
+    if (key[key.length-1] == split_key) {
+        key = key.slice(0, key.length-1);
+    }
+        
+    if (key.indexOf(split_key) == -1) {
+        obj[key] = value;
+        return [obj, key];
+    } else {
+        let cur = key.split(split_key, 1);
+        let rest = key.split(split_key).slice(1).join(split_key);
+        let newb = obj[cur];
+
+        if (newb == undefined) {
+            newb = obj[cur] = {};
+        }
+        
+        return this.dig_set(newb, rest, value);
+    }
+}; 
+
 const BLOCK_CHARS: { [id: string]: string } = {
     '"': '"',
     "'": "'",
     '`': '`',
+    "(": ")",
 };
+
+const ARG_CHARS = ['(', ')'];
+
+const COMPILE_TIME_PREFIX = '*';
 
 const SearchType = {
     Include: 0,
@@ -58,6 +167,11 @@ const Cond = {
     Haystack: 12, // See implementation, allows RegEx
     InsensitiveHaystack: 13, // case insensitive regex.
     FastHaystack: 14, // See implementation, uses indexOf
+
+    // Intersection of target and arguments is not empty set.
+    IntersectOfSeqAndSeqNotEmpty: 15,
+    SeqIsSubsetOfArgumentSeq: 16,
+    ArgumentSeqIsSubsetOfSeq: 17,
 };
 
 /*
@@ -83,9 +197,11 @@ let cond_lookup: { [type: string]: number } = {
     '%': Cond.FastHaystack,
     '?': Cond.Exists,
 
+    // 
     'has:': Cond.ArgValueInItemSeq,
     'in:': Cond.ItemValueInArgSeq,
 
+    //
     '!has:': Cond.ArgValueNotInItemSeq,
     '!in:': Cond.ItemValueNotInArgSeq,
 
@@ -94,6 +210,11 @@ let cond_lookup: { [type: string]: number } = {
     'i/': Cond.InsensitiveHaystack,
     '>=': Cond.GreaterThanOrEqual,
     '<=': Cond.LessThanOrEqual,
+
+    // not implemented.
+    'intersect:': Cond.IntersectOfSeqAndSeqNotEmpty,
+    'subsetOf:': Cond.SeqIsSubsetOfArgumentSeq,
+    'supersetOf:': Cond.ArgumentSeqIsSubsetOfSeq,
 };
 
 let cond_special_characters: Array<string> = Object.keys(cond_lookup);
@@ -149,6 +270,97 @@ fn_lookup[Cond.ItemValueInArgSeq] = function(value: any, arg: any) {
 
 fn_lookup[Cond.ArgValueNotInItemSeq] = function(value: any, arg: any) {
     return value.indexOf(arg) == -1;
+};
+
+fn_lookup[Cond.IntersectOfSeqAndSeqNotEmpty] = function(value: any, arg: any) {
+    let leftSet = [];
+    let rightSet = [];
+    
+    if (Array.isArray(value)) {
+	leftSet = value;
+    } else {
+	leftSet = Object.keys(value);
+    }
+
+    if (Array.isArray(arg)) {
+	rightSet = arg;
+    } else if (typeof arg == 'string' || arg instanceof String) {
+	rightSet = arg.split(',');
+    } else {
+	rightSet = Object.keys(value);
+    }
+
+    if (leftSet.length == 0 || rightSet.length == 0) {
+	return false;
+    }
+
+    let result = [...leftSet].filter(x => rightSet.indexOf(x) != -1);
+
+    if (result.length > 0) {
+	return true;
+    } else {
+	return false;
+    }
+};
+
+fn_lookup[Cond.SeqIsSubsetOfArgumentSeq] = function(value: any, arg: any) {
+    let leftSet = [];
+    let rightSet = [];
+    
+    if (Array.isArray(value)) {
+	leftSet = value;
+    } else {
+	leftSet = Object.keys(value);
+    }
+
+    if (Array.isArray(arg)) {
+	rightSet = arg;
+    } else if (typeof arg == 'string' || arg instanceof String) {
+	rightSet = arg.split(',');
+    } else {
+	rightSet = Object.keys(value);
+    }
+
+    if (leftSet.length == 0 || rightSet.length == 0) {
+	return false;
+    }
+
+    let all = true;
+    leftSet.forEach((x) => {
+	all = all && (rightSet.indexOf(x) != -1);
+    });
+
+    return all;
+};
+
+fn_lookup[Cond.ArgumentSeqIsSubsetOfSeq] = function(value: any, arg: any) {
+    let leftSet = [];
+    let rightSet = [];
+    
+    if (Array.isArray(value)) {
+	leftSet = value;
+    } else {
+	leftSet = Object.keys(value);
+    }
+
+    if (Array.isArray(arg)) {
+	rightSet = arg;
+    } else if (typeof arg == 'string' || arg instanceof String) {
+	rightSet = arg.split(',');
+    } else {
+	rightSet = Object.keys(value);
+    }
+
+    if (leftSet.length == 0 || rightSet.length == 0) {
+	return false;
+    }
+    
+    let all = true;
+    rightSet.forEach((x) => {
+	all = all && (leftSet.indexOf(x) != -1);
+    });
+
+    return all;
 };
 
 fn_lookup[Cond.FastHaystack] = function(value: any, arg: any) {
@@ -229,7 +441,6 @@ let safe_split = function safe_split(
     }
 
     let block_chars: { [id: string]: string } = BLOCK_CHARS;
-
     let partitions = [];
     let current_word = [];
     let in_block = false;
@@ -282,6 +493,7 @@ let string_to_search_tokens = function(
     haystack_macro_map: { [id: string]: Function },
     haystack_as_one_token: boolean,
     haystack_key: string,
+    function_lookup: { [id: string]: Function },
 ): Array<any> {
     let haystack_tokens: Array<any> = [];
     let final_tokens: Array<any> = [];
@@ -363,7 +575,7 @@ let string_to_search_tokens = function(
             }
         }
 
-        let new_token = gen_token_from_key_args(key, arg_list);
+        let new_token = gen_token_from_key_args(key, arg_list, function_lookup);
 
         if (new_token) {
             final_tokens.push(new_token);
@@ -383,7 +595,8 @@ let string_to_search_tokens = function(
 // Generate a token for a given key and it's arguments.
 let gen_token_from_key_args = function(
     key: string,
-    arg_list: Array<string>
+    arg_list: Array<string>,
+    function_lookup: {[id:string]: Function},
 ): Array<any> {
     // Determine if this search is inclusive or exclusive.
     let addrem = SearchType.Include;
@@ -401,10 +614,10 @@ let gen_token_from_key_args = function(
         return [];
     }
 
-    if (arg_list[0] == 'and') {
+    if (arg_list[0] == 'and' || arg_list[0] == 'all') {
         compose_type = ComposeType.AND;
         arg_list = arg_list.slice(1);
-    } else if (arg_list[0] == 'or') {
+    } else if (arg_list[0] == 'or' || arg_list[0] == 'any') {
         compose_type = ComposeType.OR;
         arg_list = arg_list.slice(1);
     }
@@ -440,58 +653,31 @@ let gen_token_from_key_args = function(
         new_arg_list.push([cond, narg]);
     }
 
+    new_arg_list = new_arg_list.map(([cond, arg]) => {
+	if (arg.slice) {
+	    if (arg.slice(0, COMPILE_TIME_PREFIX.length) == COMPILE_TIME_PREFIX) {
+		let clean = arg.slice(COMPILE_TIME_PREFIX.length, arg.length);
+		let sp = clean.split(',');
+		let func = sp[0];
+		let args = sp.slice(1);
+
+		let fn = function_lookup[func];
+
+		if (fn != undefined) {
+		    return [cond, fn(args)];
+		} else {
+		    return [cond, arg];
+		}
+	    }
+	}
+
+	return [cond, arg];
+    });
+
     let new_token = [addrem, key, compose_type, new_arg_list];
 
     return new_token;
 };
-
-// If a key is referencing nested data, retrieve it.
-let dig_key_value = function(value: any, key: string): any {
-    if (key == undefined) {
-        return undefined;
-    }
-
-    let key_parts = key.split('.');
-
-    if (key_parts.length == 1) {
-        return value[key];
-    } else {
-        for (let part of key_parts) {
-            if (value[part] == undefined) {
-                return undefined;
-            }
-            value = value[part];
-        }
-    }
-
-    return value;
-};
-
-let dig_sort = function(arrayVar: Array<any>, key?: string, reverse?: boolean) {
-    let DEFAULT_MISSING_VALUE = Number.MAX_VALUE;
-
-    if (reverse == true) {
-        DEFAULT_MISSING_VALUE = Number.MIN_VALUE;
-    }
-
-    if (key) {
-        arrayVar.sort(function(a: any, b: any): number {
-            let aValue = dig_key_value(a, key) || DEFAULT_MISSING_VALUE;
-            let bValue = dig_key_value(b, key) || DEFAULT_MISSING_VALUE;
-            return aValue - bValue;
-        });
-    } else {
-        arrayVar.sort(function(a: any, b: any): number {
-            let aValue = a || DEFAULT_MISSING_VALUE;
-            let bValue = b || DEFAULT_MISSING_VALUE;
-            return aValue - bValue;
-        });
-    }
-
-    if (reverse) {
-        arrayVar.reverse();
-    }
-}
 
 
 // Compose a list of tokens and then use the build_filter_fn_from_tokens
@@ -507,6 +693,13 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
     let haystack_macro_map = options['haystack_macros'] || {};
     let ignore_case = options['ignore_case'] || false;
     let haystack_as_one_token = options['haystack_as_one_token'] || false;
+    let function_lookup = options['function_lookup'] || {
+	'sum': (args) => {
+	    return args.reduce( (acc, x) => {
+		return acc + Number.parseFloat(x);
+	    }, 0);
+	},
+    };
 
     let final_tokens = string_to_search_tokens(
         q,
@@ -514,6 +707,7 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
         haystack_macro_map,
         haystack_as_one_token,
         haystack_key,
+	function_lookup,
     );
     let condition_fns: Array<any> = [];
     let use_additive = false;
@@ -526,7 +720,7 @@ let new_build_fn = function(q: string, options?: { [key: string]: any }): any {
         let lambda = function(item: any): boolean {
             let ret = true;
             let [addrem, key, compose_type, args] = outer_token;
-            let value = dig_key_value(item, key);
+            let value = dig_key(item, key);
 
             // This occurs when we have an empty arg often,
             // search = 'tag:' (likley we need more input)
@@ -705,9 +899,12 @@ let search_and_sort = (list: Array<any>, query: string, options: any): Array<any
 export {
     build_fn,
     cached_build_fn,
-    new_build_fn,
-    string_to_search_tokens,
-    dig_key_value,
+    dig_get,
+    dig_group_by,
+    dig_key,
+    dig_set,
     dig_sort,
+    new_build_fn,
     search_and_sort,
+    string_to_search_tokens,
 };
