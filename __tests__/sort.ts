@@ -1,4 +1,4 @@
-import { dig_sort, } from 'src/index';
+import { dig_sort, dig_sort_many } from 'src/index';
 
 function randInt(left, right) {
     return Math.floor((Math.random() * (right * right) % right)) + left;
@@ -100,5 +100,40 @@ describe('dig sort', () => {
 	    {'id': 1, 'value':1},
 	    {'id': 3},
 	]);
+    });
+
+    it('should support sorting by multiple fields', () => {
+	let people = [
+	    {'group': 1, 'rank': 5},
+	    {'group': 2, 'rank': 5},
+	    {'group': 1, 'rank': 4},
+	    {'group': 2, 'rank': 4},
+	    {'group': 1, 'rank': 1},
+	    {'group': 2, 'rank': 1},
+	    {'group': 1, 'rank': 3},
+	    {'group': 2, 'rank': 3},
+	    {'group': 1, 'rank': 50},
+	    {'group': 2, 'rank': 50},
+	    {'group': 1, 'rank': 6},
+	    {'group': 2, 'rank': 6},
+	];
+
+	dig_sort_many(people, ['group', 'rank']);
+
+	let expected =     [
+	    { group: 1, rank: 1 },                                
+	    { group: 1, rank: 3 },                                
+	    { group: 1, rank: 4 },                                    
+	    { group: 1, rank: 5 },                                        
+	    { group: 1, rank: 6 },                                        
+	    { group: 1, rank: 50 },                                       
+	    { group: 2, rank: 1},
+	    { group: 2, rank: 3 },                                            
+	    { group: 2, rank: 4 },                                               
+	    { group: 2, rank: 5 },                                               
+	    { group: 2, rank: 6 },                                               
+	    { group: 2, rank: 50 } ];
+
+	expect(people).toEqual(expected);
     });
 })

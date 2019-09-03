@@ -68,6 +68,33 @@ let dig_sort = function(arrayVar: Array<any>, key?: string, reverse?: boolean) {
     }
 };
 
+
+let dig_sort_many = function(arrayVar: Array<any>, keys: Array<string>, reverse?: boolean) {
+    let DEFAULT_MISSING_VALUE = Number.MAX_VALUE;
+
+    if (reverse == true) {
+        DEFAULT_MISSING_VALUE = Number.MIN_VALUE;
+    }
+
+    arrayVar.sort(function(a: any, b: any): number {
+	for( let i=0; i < keys.length; i++ ) {
+	    let key = keys[i];
+	    
+            let aValue = dig_key(a, key) || DEFAULT_MISSING_VALUE;
+            let bValue = dig_key(b, key) || DEFAULT_MISSING_VALUE;
+
+	    if (aValue != bValue) {
+		return aValue - bValue;
+	    }
+	}
+	return 0;
+    });
+
+    if (reverse) {
+        arrayVar.reverse();
+    }
+};
+
 let dig_group_by = function(arrayVar: Array<any>, key:string) {
     let ret = {};
 
@@ -904,6 +931,7 @@ export {
     dig_key,
     dig_set,
     dig_sort,
+    dig_sort_many,
     new_build_fn,
     search_and_sort,
     string_to_search_tokens,
